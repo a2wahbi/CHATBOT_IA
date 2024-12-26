@@ -16,45 +16,45 @@ if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+
 ########################################################################################
 #                               Fonction Utiles                                         #
 ########################################################################################
 def clear_text():
-    with st.spinner("En écriture..."):
-        try:
-            # Transform chat history to LangChain-compatible format
+    with st.container(border= True ):
+        with st.spinner("En écriture..."):
+            try:
+                # Transform chat history to LangChain-compatible format
+                formatted_history = []
+                for message in st.session_state.chat_history:
+                    formatted_history.append({'role': 'user', 'content': message['human']})
+                    formatted_history.append({'role': 'assistant', 'content': message['AI']})
 
-            formatted_history = []
-            for message in st.session_state.chat_history:
-                formatted_history.append({'role': 'user', 'content': message['human']})
-                formatted_history.append({'role': 'assistant', 'content': message['AI']})
+                # Format the prompt dynamically
+                formatted_prompt = prompt_template.format_prompt(
+                    chat_history=formatted_history,  # Pass the transformed chat history
+                    human_input=st.session_state["text"]  # Include the user's input
+                ).to_messages()
 
-            # Format the prompt dynamically
-            formatted_prompt = prompt_template.format_prompt(
-                chat_history=formatted_history,  # Pass the transformed chat history
-                human_input=st.session_state["text"]  # Include the user's input
-            ).to_messages()
+                # Generate a response using the formatted prompt
+                response = groq_chat(formatted_prompt)
 
-            # Generate a response using the formatted prompt
-            response = groq_chat(formatted_prompt)
+                # Add the user input and AI response to the session's chat history
+                st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
 
-            # Add the user input and AI response to the session's chat history
-            st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
+                # Save to the file if memory length is reached
+                if len(st.session_state.chat_history) % memory_length == 0:
+                    append_history_to_file(st.session_state.chat_history[-memory_length:])
 
-            # Save to the file if memory length is reached
-            if len(st.session_state.chat_history) % memory_length == 0:
-                append_history_to_file(st.session_state.chat_history[-memory_length:])
+                # Display the messages in the chat interface
+                #st.chat_message("user").write(st.session_state["text"])
+                #st.chat_message("assistant").write(response.content)
 
-            # Display the messages in the chat interface
-            st.chat_message("user").write(st.session_state["text"])
-            st.chat_message("assistant").write(response.content)
+                st.session_state["user_input"] = ""
 
-            st.session_state["user_input"] = ""
-
-        except Exception as e:
-            st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
-    st.write(st.session_state["text"])  
-    st.session_state["text"] = ""
+            except Exception as e:
+                st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
+        st.session_state["text"] = ""
 
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
