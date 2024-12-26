@@ -19,7 +19,40 @@ if os.path.exists("style.css"):
 ########################################################################################
 #                               Fonction Utiles                                         #
 ########################################################################################
-def clear_text(): 
+def clear_text():
+    with st.spinner("En écriture..."):
+        try:
+            # Transform chat history to LangChain-compatible format
+
+            formatted_history = []
+            for message in st.session_state.chat_history:
+                formatted_history.append({'role': 'user', 'content': message['human']})
+                formatted_history.append({'role': 'assistant', 'content': message['AI']})
+
+            # Format the prompt dynamically
+            formatted_prompt = prompt_template.format_prompt(
+                chat_history=formatted_history,  # Pass the transformed chat history
+                human_input=st.session_state["text"]  # Include the user's input
+            ).to_messages()
+
+            # Generate a response using the formatted prompt
+            response = groq_chat(formatted_prompt)
+
+            # Add the user input and AI response to the session's chat history
+            st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
+
+            # Save to the file if memory length is reached
+            if len(st.session_state.chat_history) % memory_length == 0:
+                append_history_to_file(st.session_state.chat_history[-memory_length:])
+
+            # Display the messages in the chat interface
+            st.chat_message("user").write(st.session_state["text"])
+            st.chat_message("assistant").write(response.content)
+
+            st.session_state["user_input"] = ""
+
+        except Exception as e:
+            st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
     st.write(st.session_state["text"])  
     st.session_state["text"] = ""
 
@@ -228,38 +261,5 @@ with st.form("user_input_form"):
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
     with col2:
         micro_button = st.form_submit_button("🎤")
-# Génération de la réponse IA et mise à jour de l'interface
-if submit_button and user_question:
-    with st.spinner("En écriture..."):
-        try:
-            # Transform chat history to LangChain-compatible format
 
-            formatted_history = []
-            for message in st.session_state.chat_history:
-                formatted_history.append({'role': 'user', 'content': message['human']})
-                formatted_history.append({'role': 'assistant', 'content': message['AI']})
-
-            # Format the prompt dynamically
-            formatted_prompt = prompt_template.format_prompt(
-                chat_history=formatted_history,  # Pass the transformed chat history
-                human_input=user_question  # Include the user's input
-            ).to_messages()
-
-            # Generate a response using the formatted prompt
-            response = groq_chat(formatted_prompt)
-
-            # Add the user input and AI response to the session's chat history
-            st.session_state.chat_history.append({'human': user_question, 'AI': response.content})
-
-            # Save to the file if memory length is reached
-            if len(st.session_state.chat_history) % memory_length == 0:
-                append_history_to_file(st.session_state.chat_history[-memory_length:])
-
-            # Display the messages in the chat interface
-            st.chat_message("user").write(user_question)
-            st.chat_message("assistant").write(response.content)
-
-            st.session_state["user_input"] = ""
-
-        except Exception as e:
-            st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
+    
