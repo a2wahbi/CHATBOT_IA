@@ -1,0 +1,47 @@
+/* Conteneur principal pour ajuster la disposition */
+.stApp {
+    display: flex;
+    flex-direction: column-reverse; /* Inverse la direction pour afficher l'entrée en bas */
+    justify-content: flex-end;
+    height: 100vh; /* Occupe toute la hauteur de l'écran */
+    overflow: hidden; /* Évite le défilement horizontal */
+}
+
+/* Barre d'entrée utilisateur */
+.user-input {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: calc(100% - 40px); /* Ajuste la largeur avec des marges */
+    z-index: 10; /* Place la barre au-dessus des autres éléments */
+    background-color: #ffffff; /* Fond blanc */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour un effet moderne */
+    border-radius: 10px; /* Coins arrondis */
+    padding: 10px;
+}
+
+/* Conteneur des messages */
+.chat-container {
+    margin-bottom: 100px; /* Laisse de la place pour la barre d'entrée */
+    padding: 20px; /* Espacement autour des messages */
+    overflow-y: auto; /* Ajoute un défilement si les messages dépassent la hauteur */
+}
+
+/* Style des messages utilisateur */
+.stChatMessage.user {
+    background-color: #ffe66d; /* Couleur jaune pour différencier l'utilisateur */
+    color: #4a4a4a; /* Texte sombre */
+    text-align: right;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+/* Style des messages assistant */
+.stChatMessage.assistant {
+    background-color: #ff6b6b; /* Corail pour les réponses de l'assistant */
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+}
