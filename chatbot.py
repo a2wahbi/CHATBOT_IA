@@ -16,13 +16,18 @@ if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+##############################################################################
+#                               organisation                                 #
+##############################################################################
+title_container = st.container(border=True )
+historique_container = st.container(border=True )
+input_question_container = st.container(border=True)
+
 
 ########################################################################################
 #                               Fonction Utiles                                         #
 ########################################################################################
 def clear_text():
-    with st.container(border= True ):
-        with st.spinner("En écriture..."):
             try:
                 # Transform chat history to LangChain-compatible format
                 formatted_history = []
@@ -54,7 +59,8 @@ def clear_text():
 
             except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
-        st.session_state["text"] = ""
+            
+            st.session_state["text"] = ""
 
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
@@ -218,8 +224,8 @@ prompt_template = ChatPromptTemplate.from_messages([
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
-st.title("🤖 TEKIN Assistant Chatbot !")
-st.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
+title_container.title("🤖 TEKIN Assistant Chatbot !")
+title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
 
 
 # Initialisation de l'historique de conversation dans la session
@@ -244,10 +250,11 @@ conversation = ConversationChain(
 )
 
 # Affichage de l'historique de la conversation
-st.subheader("Historique de la conversation")
+input_question_container.subheader("Historique de la conversation")
 for message in st.session_state.chat_history:
-    st.chat_message("user").write(message['human'])
-    st.chat_message("assistant").write(message['AI'])
+    with st.spinner("En écriture..."):
+        input_question_container.chat_message("user").write(message['human'])
+        input_question_container.chat_message("assistant").write(message['AI'])
 
 # Champ de saisie pour la question utilisateur
 with st.form("user_input_form"):
