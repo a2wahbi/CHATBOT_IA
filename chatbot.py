@@ -8,8 +8,9 @@ from langchain.schema import SystemMessage
 import json
 import whisper
 import tempfile
+from speech_to_text import AudioInput
 
-audio_data = ""
+audio_data = AudioInput()
 model = ""
 ##############################################################################
 #                               Styles                                       #
@@ -28,18 +29,17 @@ def load_model():
     return whisper.load_model("small" , device = "cpu") # Modèles possibles : tiny, base, small, medium, large
 
 def audio_input_widget (): 
-    global model 
-    model = load_model()
     # Enregistrement via st.audio_input
     global audio_data
-    audio_data = st.audio_input("speech t text widget" , label_visibility= "collapsed")
+    audio_data.userInputAudio = st.audio_input("speech t text widget" , label_visibility= "collapsed")
+
 def speech_to_text():
     if audio_data is not None:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
             audio_path = tmpfile.name
             try:
                 # Sauvegarder l'audio temporairement
-                tmpfile.write(audio_data.read())
+                tmpfile.write(audio_data.userInputAudio.read())
 
                 # Transcrire l'audio
                 st.write("Transcription en cours...")
@@ -302,6 +302,7 @@ with st.form("user_input_form"):
         placeholder="Comment puis-je vous aider ?",
         key = "text"
     )
+    model = load_model()
     audio_input_widget ()
     col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
     with col1:
