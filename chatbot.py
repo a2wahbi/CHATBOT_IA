@@ -36,15 +36,11 @@ def audio_input_widget ():
     # Enregistrement via st.audio_input
     audio_data = st.audio_input("speech text widget" , label_visibility= "collapsed" )
     if audio_data is not None:
-        input_question_container.write("audio is NOT empty  ")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
             audio_path = tmpfile.name
             try:
                 # Sauvegarder l'audio temporairement
                 tmpfile.write(audio_data.read())
-
-                # Transcrire l'audio
-                input_question_container.write("Transcription en cours...")
 
                 global result
                 result = model.transcribe(audio_path)
@@ -55,15 +51,13 @@ def audio_input_widget ():
                 # Supprimer le fichier temporaire
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
-    else:
-            input_question_container.write("audio is empty  ")
 
 ##############################################################################
 #                               organisation                                 #
 ##############################################################################
 title_container = st.container(border=False )
 historique_container = st.container(border=True , height = 400)
-input_question_container = st.container(border=True , height = 150)
+#input_question_container = st.container(border=True , height = 150)
 
 
 ########################################################################################
@@ -303,16 +297,14 @@ audio_input_widget()
 # Champ de saisie pour la question utilisateur
 with st.form("user_input_form"):
     if result["text"] :
-        input_question_container.write("Texte transcrit détecté.")
-        user_question = st.text_input(
+        user_question = st.text_area(
             "Posez votre question ici 👇",
             value=result["text"],
             placeholder="Comment puis-je vous aider ?",
             key = "text"
         )
     else: 
-        input_question_container.write("Aucun texte transcrit détecté.")
-        user_question = st.text_input(
+        user_question = st.text_area(
             "Posez votre question ici 👇",
             placeholder="Comment puis-je vous aider ?",
             key = "text"
@@ -321,8 +313,6 @@ with st.form("user_input_form"):
     with col1:
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
         
-input_question_container.text_area("Transcription", value=result["text"], height=300)
-
 
 
   
