@@ -91,13 +91,9 @@ def clear_text():
                 #st.chat_message("user").write(st.session_state["text"])
                 #st.chat_message("assistant").write(response.content)
 
-                st.session_state["user_input"] = ""
-
             except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
             
-            st.session_state["text"] = ""
-
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
 
@@ -295,23 +291,24 @@ for message in st.session_state.chat_history:
 model = load_model()
 audio_input_widget()
 # Champ de saisie pour la question utilisateur
-with st.form("user_input_form"):
-    if result["text"] :
-        user_question = st.text_area(
-            "Posez votre question ici 👇",
-            value=result["text"],
-            placeholder="Comment puis-je vous aider ?",
-            key = "text"
-        )
-    else: 
-        user_question = st.text_area(
-            "Posez votre question ici 👇",
-            placeholder="Comment puis-je vous aider ?",
-            key = "text"
-        )
-    col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
-    with col1:
-        submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
+
+form =  st.form("user_input_form" , clear_on_submit= True)
+if result["text"] :
+    user_question = form.text_area(
+    "Posez votre question ici 👇",
+    value=result["text"],
+    placeholder="Comment puis-je vous aider ?",
+    key = "text"
+    )
+else: 
+    user_question = form.text_area(
+    "Posez votre question ici 👇",
+    placeholder="Comment puis-je vous aider ?",
+    key = "text"
+    )
+col1, col2  = form.columns([10, 1])  # col1 est 3x plus large que col2
+with col1:
+    submit_button = form.form_submit_button("Envoyer" , on_click = clear_text)
         
 
 
