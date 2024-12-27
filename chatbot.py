@@ -10,7 +10,11 @@ import whisper
 import tempfile
 from speech_to_text import AudioInput
 
-
+result = {
+    "text": "",  # Chaîne de caractères pour le texte résultant
+    "segments": [],  # Liste pour les détails au niveau des segments
+    "language": None  # Langue détectée, initialement définie comme None
+}
 model = ""
 ##############################################################################
 #                               Styles                                       #
@@ -41,10 +45,9 @@ def audio_input_widget ():
 
                 # Transcrire l'audio
                 input_question_container.write("Transcription en cours...")
+
+                global result
                 result = model.transcribe(audio_path)
-
-                input_question_container.text_area("Transcription", value=result["text"], height=300)
-
 
             except Exception as e:
                 st.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
@@ -306,7 +309,9 @@ with st.form("user_input_form"):
     col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
     with col1:
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
-audio_input_widget ()
+audio_input_widget()
+input_question_container.text_area("Transcription", value=result["text"], height=300)
+
   
 
 
