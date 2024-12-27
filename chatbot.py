@@ -6,8 +6,11 @@ from langchain.chains import ConversationChain
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
 from langchain.schema import SystemMessage
 import json
+import whisper
+import tempfile
 
-
+audio_data = ""
+model = ""
 ##############################################################################
 #                               Styles                                       #
 ##############################################################################
@@ -15,6 +18,42 @@ import json
 if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+##############################################################################
+#                               speech to text                                #
+##############################################################################
+# Charger le modèle Whisper avec mise en cache
+@st.cache_resource
+def load_model():
+    return whisper.load_model("small" , device = "cpu") # Modèles possibles : tiny, base, small, medium, large
+
+def audio_input_widget (): 
+    global model 
+    model = load_model()
+    # Enregistrement via st.audio_input
+    global audio_data
+    audio_data = st.audio_input("speech t text widget" , label_visibility= "collapsed")
+def speech_to_text():
+    if audio_data is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
+            audio_path = tmpfile.name
+            try:
+                # Sauvegarder l'audio temporairement
+                tmpfile.write(audio_data.read())
+
+                # Transcrire l'audio
+                st.write("Transcription en cours...")
+                result = model.transcribe(audio_path)
+
+                st.text_area("Transcription", value=result["text"], height=300)
+
+
+            except Exception as e:
+                st.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
+            finally:
+                # Supprimer le fichier temporaire
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
 
 ##############################################################################
 #                               organisation                                 #
@@ -263,10 +302,11 @@ with st.form("user_input_form"):
         placeholder="Comment puis-je vous aider ?",
         key = "text"
     )
+    audio_input_widget ()
     col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
     with col1:
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
-    with col2:
-        micro_button = st.form_submit_button("🎤")
+        
+
 
     
