@@ -19,9 +19,9 @@ if os.path.exists("style.css"):
 ##############################################################################
 #                               organisation                                 #
 ##############################################################################
-title_container = st.container(border=True )
-historique_container = st.container(border=True )
-input_question_container = st.container(border=True)
+title_container = st.container(border=False )
+historique_container = st.container(border=True , height = 400)
+#input_question_container = st.container(border=True , height = 150)
 
 
 ########################################################################################
@@ -250,11 +250,11 @@ conversation = ConversationChain(
 )
 
 # Affichage de l'historique de la conversation
-input_question_container.subheader("Historique de la conversation")
+historique_container.subheader("Historique de la conversation")
 for message in st.session_state.chat_history:
     with st.spinner("En écriture..."):
-        input_question_container.chat_message("user").write(message['human'])
-        input_question_container.chat_message("assistant").write(message['AI'])
+        historique_container.chat_message("user").write(message['human'])
+        historique_container.chat_message("assistant").write(message['AI'])
 
 # Champ de saisie pour la question utilisateur
 with st.form("user_input_form"):
