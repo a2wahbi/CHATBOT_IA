@@ -298,19 +298,32 @@ for message in st.session_state.chat_history:
         historique_container.chat_message("user").write(message['human'])
         historique_container.chat_message("assistant").write(message['AI'])
 
+model = load_model()
+audio_input_widget()
 # Champ de saisie pour la question utilisateur
 with st.form("user_input_form"):
-    user_question = st.text_input(
-        "Posez votre question ici 👇",
-        placeholder="Comment puis-je vous aider ?",
-        key = "text"
-    )
-    model = load_model()
+    if result["text"] :
+        input_question_container.write("Texte transcrit détecté.")
+        user_question = st.text_input(
+            "Posez votre question ici 👇",
+            value=result["text"],
+            placeholder="Comment puis-je vous aider ?",
+            key = "text"
+        )
+    else: 
+        input_question_container.write("Aucun texte transcrit détecté.")
+        user_question = st.text_input(
+            "Posez votre question ici 👇",
+            placeholder="Comment puis-je vous aider ?",
+            key = "text"
+        )
     col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
     with col1:
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
-audio_input_widget()
+        
 input_question_container.text_area("Transcription", value=result["text"], height=300)
+
+
 
   
 
