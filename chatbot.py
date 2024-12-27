@@ -10,7 +10,7 @@ import whisper
 import tempfile
 from speech_to_text import AudioInput
 
-audio_data = AudioInput()
+
 model = ""
 ##############################################################################
 #                               Styles                                       #
@@ -30,22 +30,20 @@ def load_model():
 
 def audio_input_widget (): 
     # Enregistrement via st.audio_input
-    global audio_data
-    audio_data.userInputAudio = st.audio_input("speech t text widget" , label_visibility= "collapsed")
-
-def speech_to_text():
+    audio_data = st.audio_input("speech text widget" , label_visibility= "collapsed" )
     if audio_data is not None:
+        input_question_container.write("audio is NOT empty  ")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
             audio_path = tmpfile.name
             try:
                 # Sauvegarder l'audio temporairement
-                tmpfile.write(audio_data.userInputAudio.read())
+                tmpfile.write(audio_data.read())
 
                 # Transcrire l'audio
-                st.write("Transcription en cours...")
+                input_question_container.write("Transcription en cours...")
                 result = model.transcribe(audio_path)
 
-                st.text_area("Transcription", value=result["text"], height=300)
+                input_question_container.text_area("Transcription", value=result["text"], height=300)
 
 
             except Exception as e:
@@ -54,13 +52,15 @@ def speech_to_text():
                 # Supprimer le fichier temporaire
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
+    else:
+            input_question_container.write("audio is empty  ")
 
 ##############################################################################
 #                               organisation                                 #
 ##############################################################################
 title_container = st.container(border=False )
 historique_container = st.container(border=True , height = 400)
-#input_question_container = st.container(border=True , height = 150)
+input_question_container = st.container(border=True , height = 150)
 
 
 ########################################################################################
@@ -303,11 +303,11 @@ with st.form("user_input_form"):
         key = "text"
     )
     model = load_model()
-    audio_input_widget ()
     col1, col2  = st.columns([10, 1])  # col1 est 3x plus large que col2
     with col1:
         submit_button = st.form_submit_button("Envoyer" , on_click = clear_text)
-        
+audio_input_widget ()
+  
 
 
     
