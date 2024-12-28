@@ -34,7 +34,8 @@ def load_model():
 
 def audio_input_widget (): 
     # Enregistrement via st.audio_input
-    audio_data = st.audio_input("speech text widget" , label_visibility= "collapsed" )
+    with col2:
+        audio_data = form_audio_button_container.audio_input("speech text widget" , label_visibility= "collapsed" )
     if audio_data is not None:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
             audio_path = tmpfile.name
@@ -46,7 +47,7 @@ def audio_input_widget ():
                 result = model.transcribe(audio_path)
 
             except Exception as e:
-                st.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
+                form.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
             finally:
                 # Supprimer le fichier temporaire
                 if os.path.exists(audio_path):
@@ -58,6 +59,10 @@ def audio_input_widget ():
 title_container = st.container(border=False )
 historique_container = st.container(border=True , height = 400)
 #input_question_container = st.container(border=True , height = 150)
+form =  st.form("user_input_form" , clear_on_submit= True)
+form_user_input_container = form.container(border = False )
+form_audio_button_container = form.container(border= True )
+col1, col2  = form_audio_button_container.columns([10, 1])  # col1 est 3x plus large que col2
 
 
 ########################################################################################
@@ -292,23 +297,21 @@ model = load_model()
 audio_input_widget()
 # Champ de saisie pour la question utilisateur
 
-form =  st.form("user_input_form" , clear_on_submit= True)
 if result["text"] :
-    user_question = form.text_area(
+    user_question = form_user_input_container.text_area(
     "Posez votre question ici 👇",
     value=result["text"],
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
 else: 
-    user_question = form.text_area(
+    user_question = form_user_input_container.text_area(
     "Posez votre question ici 👇",
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
-col1, col2  = form.columns([10, 1])  # col1 est 3x plus large que col2
 with col1:
-    submit_button = form.form_submit_button("Envoyer" , on_click = clear_text)
+    submit_button = form_audio_button_container.form_submit_button("Envoyer" , on_click = clear_text)
         
 
 
