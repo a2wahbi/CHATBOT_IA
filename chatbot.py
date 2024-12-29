@@ -298,7 +298,6 @@ if result["text"] :
 else: 
     user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
-    value = None,
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
