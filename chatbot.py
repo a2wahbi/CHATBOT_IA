@@ -86,14 +86,10 @@ def clear_text():
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
-
-                # Display the messages in the chat interface
-                #st.chat_message("user").write(st.session_state["text"])
-                #st.chat_message("assistant").write(response.content)
-
             except Exception as e:
-                st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
-            
+                st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+                            #Clean the user input  
+            st.session_state["text"] = ""    
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
 
@@ -297,11 +293,12 @@ if result["text"] :
     "Posez votre question ici 👇",
     value=result["text"],
     placeholder="Comment puis-je vous aider ?",
-    key = "text"
+    key = "text",
     )
 else: 
     user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
+    value = None,
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
