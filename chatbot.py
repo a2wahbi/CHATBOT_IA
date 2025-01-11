@@ -34,8 +34,7 @@ def load_model():
 
 def audio_input_widget (): 
     # Enregistrement via st.audio_input
-    with col2:
-        audio_data = form_audio_button_container.audio_input("speech text widget" , label_visibility= "collapsed" )
+    audio_data = input_question_container.audio_input("speech text widget" , label_visibility= "collapsed" )
     if audio_data is not None:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
             audio_path = tmpfile.name
@@ -47,7 +46,7 @@ def audio_input_widget ():
                 result = model.transcribe(audio_path)
 
             except Exception as e:
-                form.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
+                st.error(f"Une erreur est survenue pendant l'enregistrement ou la transcription : {e}")
             finally:
                 # Supprimer le fichier temporaire
                 if os.path.exists(audio_path):
@@ -58,11 +57,7 @@ def audio_input_widget ():
 ##############################################################################
 title_container = st.container(border=False )
 historique_container = st.container(border=True , height = 400)
-#input_question_container = st.container(border=True , height = 150)
-form =  st.form("user_input_form" , clear_on_submit= True)
-form_user_input_container = form.container(border = False )
-form_audio_button_container = form.container(border= True )
-col1, col2  = form_audio_button_container.columns([10, 1])  # col1 est 3x plus large que col2
+input_question_container = st.container(border=True , height = 300)
 
 
 ########################################################################################
@@ -91,14 +86,10 @@ def clear_text():
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
-
-                # Display the messages in the chat interface
-                #st.chat_message("user").write(st.session_state["text"])
-                #st.chat_message("assistant").write(response.content)
-
             except Exception as e:
-                st.error(f"Erreur lors de la génération de la réponse : {str(e)}") 
-            
+                st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+                            #Clean the user input  
+            st.session_state["text"] = ""    
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
 
@@ -298,22 +289,19 @@ audio_input_widget()
 # Champ de saisie pour la question utilisateur
 
 if result["text"] :
-    user_question = form_user_input_container.text_area(
+    user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
     value=result["text"],
     placeholder="Comment puis-je vous aider ?",
-    key = "text"
+    key = "text",
     )
 else: 
-    user_question = form_user_input_container.text_area(
+    user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
-with col1:
-    submit_button = form_audio_button_container.form_submit_button("Envoyer" , on_click = clear_text)
-        
-
+input_question_container.button("Envoyer" , type="secondary" , on_click= clear_text)
 
   
 
