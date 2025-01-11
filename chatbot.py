@@ -288,19 +288,20 @@ model = load_model()
 audio_input_widget()
 # Champ de saisie pour la question utilisateur
 
-if result["text"] :
-    user_question = input_question_container.text_area(
+# Initialiser la valeur de 'text' si elle n'existe pas déjà dans st.session_state
+if "text" not in st.session_state:
+    st.session_state["text"] = ""
+
+# Si une entrée audio existe, elle remplace le contenu de 'text'
+if result["text"]:
+    st.session_state["text"] = result["text"]
+
+user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
-    value=result["text"],
     placeholder="Comment puis-je vous aider ?",
-    key = "text",
-    )
-else: 
-    user_question = input_question_container.text_area(
-    "Posez votre question ici 👇",
-    placeholder="Comment puis-je vous aider ?",
-    key = "text"
-    )
+    key="text",
+
+)
 input_question_container.button("Envoyer" , type="secondary" , on_click= clear_text)
 
   
