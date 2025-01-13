@@ -8,7 +8,7 @@ from langchain.schema import SystemMessage
 import json
 import whisper
 import tempfile
-from utils import download_chat_history
+from buttons import display_interactive_buttons
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -306,25 +306,5 @@ else:
     key = "text"
     )
 
-# Boutons "Envoyer", "Je ne sais pas", et popover "Export"
-col1, col2, col3 = input_question_container.columns([5, 4, 2])
-
-# Bouton Envoyer
-col1.button("Envoyer", type="secondary", on_click=clear_text)
-
-# Bouton Je ne sais pas
-col2.button("Je ne sais pas", on_click=lambda: clear_text_with_default("Je ne sais pas"))
-
-# Bouton dans un popover pour télécharger l'historique
-popover = col3.popover("Export")
-if st.session_state.chat_history:  # Vérification si un historique existe
-    chat_file = download_chat_history(st.session_state.chat_history)
-    popover.download_button(
-        label="Télécharger en tant que fichier texte",
-        data=chat_file,
-        file_name="historique_conversation.txt",
-        mime="text/plain"
-    )
-else:
-    popover.write("Aucune conversation à télécharger.")
-
+# Appeler la fonction pour Afficher les boutons
+display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
