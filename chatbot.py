@@ -89,7 +89,35 @@ def clear_text():
             except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
                             #Clean the user input  
-            st.session_state["text"] = ""    
+            st.session_state["text"] = ""  
+
+def clear_text_with_default(default_input="Je ne sais pas"):
+    """Fonction similaire à clear_text, mais prend un texte par défaut comme entrée."""
+    try:
+        # Transform chat history to LangChain-compatible format
+        formatted_history = []
+        for message in st.session_state.chat_history:
+            formatted_history.append({'role': 'user', 'content': message['human']})
+            formatted_history.append({'role': 'assistant', 'content': message['AI']})
+
+        # Format the prompt dynamically with default input
+        formatted_prompt = prompt_template.format_prompt(
+            chat_history=formatted_history,  # Pass the transformed chat history
+            human_input=default_input  # Use default input like "Je ne sais pas"
+        ).to_messages()
+
+        # Generate a response using the formatted prompt
+        response = groq_chat(formatted_prompt)
+
+        # Add the user input and AI response to the session's chat history
+        st.session_state.chat_history.append({'human': default_input, 'AI': response.content})
+
+        # Save to the file if memory length is reached
+        if len(st.session_state.chat_history) % memory_length == 0:
+            append_history_to_file(st.session_state.chat_history[-memory_length:])
+    except Exception as e:
+        st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
 
@@ -277,9 +305,12 @@ else:
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
-input_question_container.button("Envoyer" , type="secondary" , on_click= clear_text)
+# Bouton "Envoyer" et "Je ne sais pas"
+col1, col2 = input_question_container.columns([7, 2])
 
-  
+with col1:
+    col1.button("Envoyer", type="secondary", on_click=clear_text)
 
-
+with col2:
+    col2.button("Je ne sais pas", on_click=lambda: clear_text_with_default("Je ne sais pas"))
     
