@@ -1,4 +1,6 @@
 
+import streamlit as st
+
 # Prompts spécifiques pour chaque section
 section_prompts = {
     "Accueil": """
@@ -172,3 +174,12 @@ def generate_full_prompt(current_section, previous_summaries):
     {section_prompt}
     """
     return full_prompt
+
+def next_section():
+    """Passe à la section suivante en fonction de la section actuelle."""
+    sections = list(section_prompts.keys())
+    current_index = sections.index(st.session_state.current_section)
+    if current_index < len(sections) - 1:
+        st.session_state.current_section = sections[current_index + 1]
+    else:
+        st.warning("Vous êtes déjà à la dernière section.")

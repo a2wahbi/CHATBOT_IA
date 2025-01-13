@@ -9,7 +9,7 @@ import json
 import whisper
 import tempfile
 from buttons import display_interactive_buttons
-from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt
+from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -261,6 +261,9 @@ else:
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
+
+if 'current_section' not in st.session_state:
+    st.session_state.current_section = "Accueil"
 
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
