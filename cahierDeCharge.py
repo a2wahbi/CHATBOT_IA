@@ -181,5 +181,6 @@ def next_section():
     current_index = sections.index(st.session_state.current_section)
     if current_index < len(sections) - 1:
         st.session_state.current_section = sections[current_index + 1]
+        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
     else:
         st.warning("Vous êtes déjà à la dernière section.")
