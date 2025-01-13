@@ -8,7 +8,7 @@ from langchain.schema import SystemMessage
 import json
 import whisper
 import tempfile
-from speech_to_text import AudioInput
+from buttons import display_interactive_buttons
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -89,7 +89,35 @@ def clear_text():
             except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
                             #Clean the user input  
-            st.session_state["text"] = ""    
+            st.session_state["text"] = ""  
+
+def clear_text_with_default(default_input="Je ne sais pas"):
+    """Fonction similaire à clear_text, mais prend un texte par défaut comme entrée."""
+    try:
+        # Transform chat history to LangChain-compatible format
+        formatted_history = []
+        for message in st.session_state.chat_history:
+            formatted_history.append({'role': 'user', 'content': message['human']})
+            formatted_history.append({'role': 'assistant', 'content': message['AI']})
+
+        # Format the prompt dynamically with default input
+        formatted_prompt = prompt_template.format_prompt(
+            chat_history=formatted_history,  # Pass the transformed chat history
+            human_input=default_input  # Use default input like "Je ne sais pas"
+        ).to_messages()
+
+        # Generate a response using the formatted prompt
+        response = groq_chat(formatted_prompt)
+
+        # Add the user input and AI response to the session's chat history
+        st.session_state.chat_history.append({'human': default_input, 'AI': response.content})
+
+        # Save to the file if memory length is reached
+        if len(st.session_state.chat_history) % memory_length == 0:
+            append_history_to_file(st.session_state.chat_history[-memory_length:])
+    except Exception as e:
+        st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
 
@@ -137,7 +165,7 @@ def setup_sidebar():
     # Sélection du modèle
     model_choice = st.sidebar.selectbox(
         "Choisissez un modèle :",
-        ["gemma2-9b-it", "gemma-7b-it", "llama3-70b-8192", "llama3-8b-8192"]
+        ["llama3-70b-8192", "llama3-8b-8192"]
     )
     
     # Slider pour la longueur de la mémoire
@@ -177,78 +205,54 @@ def setup_sidebar():
 ##############################################################################
 
 system_prompt = """
-Tu es un assistant intelligent de l'entreprise TEKIN, spécialisée dans les projets IoT. Ta mission est d'interagir avec les clients pour :
+Tu es un assistant intelligent de l'entreprise TEKIN, spécialisée dans les projets IoT. Ta mission est d'interagir avec les clients pour :
 
-1. Comprendre les objectifs principaux de leur projet IoT, en identifiant leurs attentes et les problèmes qu'ils souhaitent résoudre.
+1. **Comprendre les objectifs principaux de leur projet IoT** :
+   - Identifie leurs attentes.
+   - Détermine les problèmes qu'ils souhaitent résoudre.
 
-2. Déterminer les composants nécessaires :
-   - Capteurs
-   - Actionneurs
-   - Connectivité
-   - Protocoles de communication
+2. **Définir les composants nécessaires** :
+   - Capteurs, actionneurs, connectivité, et protocoles.
 
-3. Obtenir les informations suivantes : 
+3. **Collecter les informations suivantes** :  
+   - **Exigences fonctionnelles** :  
+     - Fonctionnalités principales, collecte et traitement des données, communication, interface utilisateur.  
+   - **Exigences non-fonctionnelles** :  
+     - Performance, fiabilité, sécurité, consommation énergétique, durée de vie.  
+   - **Exigences techniques** :  
+     - Capteurs, spécifications matérielles, connectivité, portée, compatibilité, résistance environnementale.  
+   - **Exigences réglementaires** :  
+     - Normes, certifications, RGPD, cybersécurité.  
+   - **Informations personnelles clés** :  
+     - Numéro de téléphone, adresse e-mail.  
 
-   ### Exigences fonctionnelles :
-   - Fonctionnalités principales du produit
-   - Capacités de collecte et de traitement des données
-   - Modes de communication et protocoles utilisés
-   - Interactions avec l'utilisateur et interface
+### Directives pour interagir avec le client :  
+- Pose des **questions simples et précises**, basées sur les réponses précédentes.  
+- Limite-toi à une **seule question à la fois** pour garantir la clarté.  
+- Clarifie ou reformule les réponses ambiguës.  
 
-   ### Exigences non-fonctionnelles :
-   - Performance (temps de réponse, débit de données)
-   - Fiabilité et disponibilité
-   - Sécurité et confidentialité des données
-   - Type d’alimentation
-   - Consommation énergétique
-   - Durée de vie de la batterie (si applicable)
+### À la fin de la conversation :  
+- Résume toutes les informations recueillies de manière structurée.  
+- Prépare un **cahier des charges professionnel**, prêt à être transmis à l'équipe TEKIN.
 
-   ### Exigences techniques :
-   - Choix des capteurs et actionneurs
-   - Spécifications du matériel (processeur, mémoire, stockage)
-   - Connectivité sans fil (Wi-Fi, Bluetooth, LoRa, etc.)
-   - Portée de la connectivité
-   - Compatibilité avec les plateformes IoT existantes
-   - Taille et forme du produit
-   - Matériaux utilisés
-   - Résistance environnementale (température, humidité, poussière)
-   - Ergonomie et facilité d'utilisation
+**Ton attendu** :  
+Professionnel, amical, et rassurant.
 
-   ### Exigences réglementaires :
-   - Conformité aux normes de sécurité
-   - Certifications requises (CE, FCC, etc.)
-   - Respect des réglementations sur la protection des données (RGPD)
-   - Cybersécurité
-   - Environnement spécifique (médical, aéronautique, etc.)
+### Exemples de questions à poser :  
+- Quels sont les principaux objectifs de votre projet ?  
+- Quels types de capteurs envisagez-vous d'utiliser ?  
+- Avez-vous des exigences spécifiques en matière de sécurité ?  
 
-4. Collecter des informations personnelles clés :
-   - Numéro de téléphone
-   - Adresse e-mail
-
-### Directives :
-
-- À chaque étape :
-  - Pose des questions claires et précises, adaptées aux réponses précédentes.
-  - Limite-toi à une seule question à la fois pour faciliter la compréhension du client.
-  - Reformule ou clarifie les réponses ambiguës pour garantir l'exactitude des informations.
-
-- À la fin de la conversation :
-  - Résume toutes les informations recueillies de manière structurée.
-  - Prépare un cahier des charges clair et professionnel, prêt à être transmis à l'équipe TEKIN.
-
-Adopte un ton professionnel, amical et rassurant pour mettre le client à l'aise et encourager un échange constructif.
-
-Ce document confidentiel est la propriété de TEKIN et ne doit pas être reproduit ou communiqué sans autorisation.
+**Note** : Ce document est confidentiel et appartient à TEKIN. Ne pas reproduire sans autorisation.
 """
 
-
-#Create the Chat Prompt Template
+# Create the Chat Prompt Template
 prompt_template = ChatPromptTemplate.from_messages([
-    SystemMessage(content = system_prompt),
-    MessagesPlaceholder(variable_name = "chat_history"),
+    SystemMessage(content=system_prompt),
+    MessagesPlaceholder(variable_name="chat_history"),
     HumanMessagePromptTemplate.from_template("{human_input}")
+])
 
-]) 
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
@@ -301,9 +305,6 @@ else:
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
-input_question_container.button("Envoyer" , type="secondary" , on_click= clear_text)
 
-  
-
-
-    
+# Appeler la fonction pour Afficher les boutons
+display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
