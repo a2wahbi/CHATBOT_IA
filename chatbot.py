@@ -193,6 +193,29 @@ def setup_sidebar():
     # Retourner les choix effectués
     return model_choice, memory_length , max_tokens
 
+# Import nécessaire
+import streamlit as st
+
+# Ajout d'une fonction pour afficher la progression des sections
+def display_section_progress():
+    """Affiche une barre de progression et des indicateurs de progression plus esthétiques."""
+    sections = list(section_prompts.keys())
+    current_index = sections.index(st.session_state.current_section)
+    total_sections = len(sections)
+    progress_value = (current_index + 1) / total_sections
+
+    # Afficher la barre de progression
+    st.sidebar.progress(progress_value, text=f"Section {current_index + 1}/{total_sections}")
+
+    # Afficher les sections avec des icônes esthétiques
+    st.sidebar.write("### Progression des Sections")
+    for idx, section in enumerate(sections):
+        if idx < current_index:
+            st.sidebar.markdown(f"✅ <span style='color: green; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
+        elif idx == current_index:
+            st.sidebar.markdown(f"🚀 <span style='color: red ; font-weight: bold;'>{section}</span> (En cours)", unsafe_allow_html=True)
+        else:
+            st.sidebar.markdown(f"⏳ <span style='color: gray; font-weight: bold;'>{section}</span> ", unsafe_allow_html=True)
 
 
 
@@ -272,3 +295,4 @@ else:
 
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
+display_section_progress()  # Affiche la progression des sections

@@ -287,10 +287,7 @@ def next_section():
             st.session_state.current_section, 
             previous_summaries
         )
-        
-        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
-        st.markdown(f"### Prompt généré pour {st.session_state.current_section} :")
-        st.code(st.session_state.full_prompt)
+        #st.code(st.session_state.full_prompt)
     else:
         st.warning("Vous êtes déjà à la dernière section.")
 
