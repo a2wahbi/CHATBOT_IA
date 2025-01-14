@@ -246,17 +246,24 @@ def generate_full_prompt(current_section, previous_summaries):
     return full_prompt
 
 def generate_previous_summaries(completed_sections):
-    """combiner tous les résumés déja géneré """
-
-    #Initialisation d’une liste pour stocker les résumés
+    """
+    Combine tous les résumés déjà générés pour les sections complétées.
+    Utilise les résumés réels stockés dans st.session_state.history_summary.
+    """
+    # Initialisation d’une liste pour stocker les résumés
     summaries = []
-
-    #Parcourir les sections complétées
+    
+    # Parcourir les sections complétées
     for section in completed_sections:
-        #Ajouter à la liste summaries une chaîne de caractères au format :  Résumé pour [nom de la section] : (contenu fictif)
-        #remplacer contenu fictif par le résumé de la section 
-        summaries.append(f"Résumé pour {section} : (contenu fictif)")
-    #Combiner tous les résumés en un seul texte
+        # Chercher le résumé correspondant dans l'historique
+        summary = next(
+            (entry['summary'] for entry in st.session_state.history_summary if entry['section'] == section),
+            "(Résumé non disponible)"  # Par défaut si aucun résumé trouvé
+        )
+        # Ajouter le résumé formaté à la liste
+        summaries.append(f"Résumé pour {section} : {summary}")
+    
+    # Combiner tous les résumés en un seul texte
     return "\n".join(summaries)
 
 
