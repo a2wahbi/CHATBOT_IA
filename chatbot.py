@@ -10,7 +10,7 @@ import whisper
 import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
-from cahierDeCharge import get_updated_prompt_template
+from cahierDeCharge import get_updated_prompt_template , display_summary_history
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -244,6 +244,10 @@ if 'full_prompt' not in st.session_state:
         st.session_state.current_section, 
         ""
     )
+
+if 'history_summary' not in st.session_state:
+    st.session_state.history_summary = [] 
+
 # Obtenir le prompt template mis à jour
 prompt_template = get_updated_prompt_template()
 
@@ -257,6 +261,9 @@ groq_chat = ChatGroq(
     model_name=model_choice,
     max_tokens = max_tokens
 )
+
+# Stocker groq_chat dans st.session_state
+st.session_state.groq_chat = groq_chat
 
 # Configuration de la chaîne de conversation
 conversation = ConversationChain(
@@ -296,3 +303,4 @@ else:
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
 display_section_progress()  # Affiche la progression des sections
+display_summary_history()

@@ -5,9 +5,7 @@ from langchain.schema import SystemMessage
 
 
 summary_sections = {
-    "Introduction et Contexte": (
-        "Vous allez résumer la section 'Introduction et Contexte'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+    "Introduction et Contexte": "Voici les éléments nécessaires à inclure :\n"
         "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
         "- Présentation du projet : Décrivez le contexte, le problème à résoudre, et les objectifs globaux.\n"
         "- Parties prenantes : Qui sont les intervenants (client, développeurs, utilisateurs finaux) ? Quels sont leurs rôles et responsabilités ?\n"
@@ -16,44 +14,36 @@ summary_sections = {
         "- **Objectifs du document** : [Votre réponse ici]\n"
         "- **Présentation du projet** : [Votre réponse ici]\n"
         "- **Parties prenantes** : [Votre réponse ici]\n"
-        "- **Périmètre du projet** : [Votre réponse ici]"
-    ),
-    "Description Fonctionnelle": (
-        "Vous allez résumer la section 'Description Fonctionnelle'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+        "- **Périmètre du projet** : [Votre réponse ici]",
+    
+    "Description Fonctionnelle": "Voici les éléments nécessaires à inclure :\n"
         "- Cas d'utilisation : Quels sont les scénarios dans lesquels le système IoT sera utilisé ?\n"
         "- Fonctionnalités principales : Quels sont les éléments clés du système ? (Collecte de données, transmission, traitement, interface utilisateur, etc.)\n"
         "- Fonctionnalités secondaires : Quelles fonctionnalités supplémentaires sont prévues ? (Notifications, sauvegarde, mises à jour OTA, etc.)\n\n"
         "Structure attendue :\n"
         "- **Cas d'utilisation** : [Votre réponse ici]\n"
         "- **Fonctionnalités principales** : [Votre réponse ici]\n"
-        "- **Fonctionnalités secondaires** : [Votre réponse ici]"
-    ),
-    "Spécifications Techniques": (
-        "Vous allez résumer la section 'Spécifications Techniques'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+        "- **Fonctionnalités secondaires** : [Votre réponse ici]",
+    
+    "Spécifications Techniques": "Voici les éléments nécessaires à inclure :\n"
         "- Architecture Système : Décrivez le matériel (microcontrôleurs, capteurs, modules de communication, etc.) et le logiciel (système d'exploitation, middleware, applications embarquées).\n"
         "- Interfaces et Protocoles : Quels sont les interfaces physiques (GPIO, UART, SPI, etc.) et protocoles de communication (MQTT, CoAP, HTTP, etc.) utilisés ?\n"
         "- Contraintes : Indiquez les contraintes spécifiques (performances, environnementales, sécurité, etc.).\n\n"
         "Structure attendue :\n"
         "- **Architecture Système** : [Votre réponse ici]\n"
         "- **Interfaces et Protocoles** : [Votre réponse ici]\n"
-        "- **Contraintes** : [Votre réponse ici]"
-    ),
-    "Spécifications des Données": (
-        "Vous allez résumer la section 'Spécifications des Données'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+        "- **Contraintes** : [Votre réponse ici]",
+    
+    "Spécifications des Données": "Voici les éléments nécessaires à inclure :\n"
         "- Type de données collectées : Décrivez la nature, la fréquence, et la taille des données.\n"
         "- Flux de données : Comment les données circulent-elles entre les différents modules (edge devices, gateways, cloud) ?\n"
         "- Stockage et gestion des données : Quels sont les besoins en stockage et les solutions prévues pour la sauvegarde ?\n\n"
         "Structure attendue :\n"
         "- **Type de données collectées** : [Votre réponse ici]\n"
         "- **Flux de données** : [Votre réponse ici]\n"
-        "- **Stockage et gestion des données** : [Votre réponse ici]"
-    ),
-    "Contraintes et Normes": (
-        "Vous allez résumer la section 'Contraintes et Normes'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+        "- **Stockage et gestion des données** : [Votre réponse ici]",
+    
+    "Contraintes et Normes": "Voici les éléments nécessaires à inclure :\n"
         "- Réglementations : Quelles sont les normes locales et internationales applicables (CE, FCC, ISO, etc.) ?\n"
         "- Contraintes financières : Quel est le budget alloué ?\n"
         "- Contraintes temporelles : Quels sont les délais de livraison et les jalons principaux ?\n"
@@ -62,11 +52,9 @@ summary_sections = {
         "- **Réglementations** : [Votre réponse ici]\n"
         "- **Contraintes financières** : [Votre réponse ici]\n"
         "- **Contraintes temporelles** : [Votre réponse ici]\n"
-        "- **Contraintes techniques spécifiques** : [Votre réponse ici]"
-    ),
-    "Partie à Externaliser": (
-        "Vous allez résumer la section 'Partie à Externaliser'.\n\n"
-        "Voici les éléments nécessaires à inclure :\n"
+        "- **Contraintes techniques spécifiques** : [Votre réponse ici]",
+    
+    "Partie à Externaliser": "Voici les éléments nécessaires à inclure :\n"
         "- Quels composants matériels ou logiciels doivent être externalisés ?\n"
         "- Pourquoi ces parties spécifiques doivent-elles être externalisées ? (Manque de compétences internes, gain de temps, etc.)\n"
         "- Quels sont les critères de sélection des prestataires ou partenaires externes ?\n\n"
@@ -74,10 +62,7 @@ summary_sections = {
         "- **Composants à externaliser** : [Votre réponse ici]\n"
         "- **Raisons de l'externalisation** : [Votre réponse ici]\n"
         "- **Critères de sélection des prestataires** : [Votre réponse ici]"
-    )
 }
-
-
 
 # Prompts spécifiques pour chaque section
 section_prompts = {
@@ -280,6 +265,9 @@ def next_section():
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
 
+        # Générer le résumé pour la section actuelle
+    generate_summary()
+
     if current_index < len(sections) - 1:
         # Passer à la section suivante
         st.session_state.current_section = sections[current_index + 1]
@@ -335,3 +323,58 @@ def generate_summary_prompt(system_prompt, previous_summaries, section_name, sum
     ### Section actuelle : {section_name}
     {summary_prompt}
 """
+def generate_summary():
+    """Génère un résumé pour la section actuelle et l'ajoute à l'historique des résumés."""
+    try:
+        # Vérifier si 'groq_chat' est bien initialisé
+        if 'groq_chat' not in st.session_state:
+            st.error("groq_chat n'est pas initialisé. Assurez-vous que la configuration est correcte.")
+            return
+
+        # Obtenir le template de prompt pour les résumés
+        summary_prompt_template = get_updated_internal_summary_prompt_template()
+
+        # Préparer l'historique des résumés dans le bon format
+        formatted_history = [
+            {"role": "user", "content": f"Section : {entry['section']}\nRésumé : {entry['summary']}"}
+            for entry in st.session_state.history_summary
+        ]
+
+        # Formater le prompt pour générer le résumé
+        formatted_summary_prompt = summary_prompt_template.format_prompt(
+            history_summary=formatted_history,  # Historique des résumés formaté
+            human_input="Génère un résumé pour cette section"
+        ).to_messages()
+
+        # Appeler Groq pour générer le résumé
+        response = st.session_state.groq_chat(formatted_summary_prompt)
+
+        # Ajouter le résumé généré à l'historique interne
+        st.session_state.history_summary.append({
+            'section': st.session_state.current_section,
+            'summary': response.content
+        })
+
+        st.success("Résumé généré avec succès !")
+    except Exception as e:
+        st.error(f"Erreur lors de la génération du résumé : {str(e)}")
+
+
+def get_updated_internal_summary_prompt_template():
+    """Retourne un template de prompt mis à jour pour les résumés internes."""
+    full_summary_prompt = st.session_state.get("full_summary_prompt", "Default summary prompt")
+    return ChatPromptTemplate.from_messages([
+        SystemMessage(content=full_summary_prompt),
+        MessagesPlaceholder(variable_name="history_summary"),
+        HumanMessagePromptTemplate.from_template("{human_input}")
+    ])
+
+def display_summary_history():
+    """Affiche l'historique des résumés dans l'interface Streamlit."""
+    st.subheader("Historique des Résumés")
+    if st.session_state.history_summary:
+        for entry in st.session_state.history_summary:
+            with st.expander(f"Résumé pour la section : {entry['section']}"):
+                st.text_area("Résumé :", entry['summary'], height=150, key=f"summary_{entry['section']}")
+    else:
+        st.info("Aucun résumé disponible.")
