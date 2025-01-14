@@ -326,6 +326,11 @@ def generate_summary_prompt(system_prompt, previous_summaries, section_name, sum
 def generate_summary():
     """Génère un résumé pour la section actuelle et l'ajoute à l'historique des résumés."""
     try:
+        
+        # Ignorer la section Accueil
+        if st.session_state.current_section == "Accueil":
+            st.info("La section 'Accueil' est ignorée pour le résumé.")
+            return
         # Vérifier si 'groq_chat' est bien initialisé
         if 'groq_chat' not in st.session_state:
             st.error("groq_chat n'est pas initialisé. Assurez-vous que la configuration est correcte.")
