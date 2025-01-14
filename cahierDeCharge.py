@@ -1,5 +1,7 @@
 
 import streamlit as st
+from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
+from langchain.schema import SystemMessage
 
 # Prompts spécifiques pour chaque section
 section_prompts = {
@@ -13,6 +15,7 @@ section_prompts = {
     - Une fois toutes les informations d'une section recueillies, invitez le client à appuyer sur le bouton "Passer à la prochaine section" pour continuer.
 
     Formulez un message d'accueil professionnel et rassurant, en expliquant clairement ces étapes.
+    Lorsque tu as dis tous ces informations , invitez l'utilisateur à appuyer sur le bouton "Passer à la prochaine section
     """
     ,
 
@@ -175,12 +178,39 @@ def generate_full_prompt(current_section, previous_summaries):
     """
     return full_prompt
 
+def generate_previous_summaries(completed_sections):
+    """Génère un résumé basé sur les sections complétées."""
+    summaries = []
+    for section in completed_sections:
+        summaries.append(f"Résumé pour {section} : (contenu fictif)")
+    return "\n".join(summaries)
+
+# Fonction pour générer le Chat Prompt Template
+def get_updated_prompt_template():
+    """Retourne le prompt_template mis à jour avec le full prompt actuel."""
+    full_prompt = st.session_state.get("full_prompt", "Default system prompt")
+    return ChatPromptTemplate.from_messages([
+        SystemMessage(content=full_prompt),
+        MessagesPlaceholder(variable_name="chat_history"),
+        HumanMessagePromptTemplate.from_template("{human_input}")
+    ])
+
+
 def next_section():
-    """Passe à la section suivante en fonction de la section actuelle."""
+    """Passe à la section suivante et met à jour le full prompt."""
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
+    
     if current_index < len(sections) - 1:
         st.session_state.current_section = sections[current_index + 1]
+        previous_summaries = generate_previous_summaries(sections[:current_index + 1])
+        st.session_state.full_prompt = generate_full_prompt(
+            st.session_state.current_section, 
+            previous_summaries
+        )
+        
         st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
+        st.markdown(f"### Prompt généré pour {st.session_state.current_section} :")
+        st.code(st.session_state.full_prompt)
     else:
         st.warning("Vous êtes déjà à la dernière section.")

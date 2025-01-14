@@ -10,6 +10,7 @@ import whisper
 import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
+from cahierDeCharge import get_updated_prompt_template
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -17,6 +18,8 @@ result = {
     "language": None  # Langue détectée, initialement définie comme None
 }
 model = ""
+#Enregistrer les données dans un fichier JSON 
+HISTORY_FILE = "chat_history.json"
 ##############################################################################
 #                               Styles                                       #
 ##############################################################################
@@ -52,14 +55,6 @@ def audio_input_widget ():
                 # Supprimer le fichier temporaire
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
-
-##############################################################################
-#                               organisation                                 #
-##############################################################################
-title_container = st.container(border=False )
-historique_container = st.container(border=True , height = 400)
-input_question_container = st.container(border=True , height = 300)
-
 
 ########################################################################################
 #                               Fonction Utiles                                         #
@@ -118,9 +113,6 @@ def clear_text_with_default(default_input="Je ne sais pas"):
             append_history_to_file(st.session_state.chat_history[-memory_length:])
     except Exception as e:
         st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
-
-#Enregistrer les données dans un fichier JSON 
-HISTORY_FILE = "chat_history.json"
 
 def save_history_to_file(history, filename = HISTORY_FILE):
     """Enregistre l'historique de la conversation dans un fichier JSON. """
@@ -202,16 +194,16 @@ def setup_sidebar():
 
 
 
-# Create the Chat Prompt Template
-prompt_template = ChatPromptTemplate.from_messages([
-    SystemMessage(content=system_prompt),
-    MessagesPlaceholder(variable_name="chat_history"),
-    HumanMessagePromptTemplate.from_template("{human_input}")
-])
+
 
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
+
+title_container = st.container(border=False )
+historique_container = st.container(border=True , height = 400)
+input_question_container = st.container(border=True , height = 300)
+
 title_container.title("🤖 TEKIN Assistant Chatbot !")
 title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
 
@@ -219,6 +211,17 @@ title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet 
 # Initialisation de l'historique de conversation dans la session
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = load_history_from_file()
+
+if 'current_section' not in st.session_state:
+    st.session_state.current_section = "Accueil"
+
+if 'full_prompt' not in st.session_state:
+    st.session_state.full_prompt = generate_full_prompt(
+        st.session_state.current_section, 
+        ""
+    )
+# Obtenir le prompt template mis à jour
+prompt_template = get_updated_prompt_template()
 
 model_choice , memory_length , max_tokens = setup_sidebar()
 # Initialisation de la mémoire conversationnelle
@@ -244,10 +247,14 @@ for message in st.session_state.chat_history:
         historique_container.chat_message("user").write(message['human'])
         historique_container.chat_message("assistant").write(message['AI'])
 
+# Charger le modèle Whisper
 model = load_model()
-audio_input_widget()
-# Champ de saisie pour la question utilisateur
 
+# Widget audio
+audio_input_widget()
+
+
+# Champ de saisie pour la question utilisateu
 if result["text"] :
     user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
@@ -261,9 +268,6 @@ else:
     placeholder="Comment puis-je vous aider ?",
     key = "text"
     )
-
-if 'current_section' not in st.session_state:
-    st.session_state.current_section = "Accueil"
 
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
