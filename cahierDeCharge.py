@@ -282,7 +282,23 @@ def next_section():
     
     if current_index < len(sections) - 1:
         st.session_state.current_section = sections[current_index + 1]
+
+        # Générer les résumés précédents
         previous_summaries = generate_previous_summaries(sections[:current_index + 1])
+
+        # Récupérer le prompt de résumé pour la nouvelle section
+        section_name = st.session_state.current_section
+        summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
+
+        # Combiner les prompts
+        full_summary_prompt = generate_summary_prompt(
+            system_prompt, 
+            previous_summaries, 
+            section_name, 
+            summary_prompt
+        )
+
+        st.code (full_summary_prompt)
         st.session_state.full_prompt = generate_full_prompt(
             st.session_state.current_section, 
             previous_summaries
