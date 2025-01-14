@@ -276,11 +276,12 @@ def get_updated_prompt_template():
     
 
 def next_section():
-    """Passe à la section suivante et met à jour le full prompt."""
+    """Passe à la section suivante, génère un résumé, et met à jour le full prompt."""
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
-    
+
     if current_index < len(sections) - 1:
+        # Passer à la section suivante
         st.session_state.current_section = sections[current_index + 1]
 
         # Générer les résumés précédents
@@ -290,7 +291,7 @@ def next_section():
         section_name = st.session_state.current_section
         summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
 
-        # Combiner les prompts
+        # Combiner les prompts pour le résumé
         full_summary_prompt = generate_summary_prompt(
             system_prompt, 
             previous_summaries, 
@@ -298,14 +299,19 @@ def next_section():
             summary_prompt
         )
 
-        st.code (full_summary_prompt)
+        # Afficher le prompt de résumé pour débogage
+        st.code(full_summary_prompt)
+
+        # Mettre à jour le full prompt pour la nouvelle section
         st.session_state.full_prompt = generate_full_prompt(
             st.session_state.current_section, 
             previous_summaries
         )
-        #st.code(st.session_state.full_prompt)
+
+        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
     else:
         st.warning("Vous êtes déjà à la dernière section.")
+
 
 def generate_summary_prompt(system_prompt, previous_summaries, section_name, summary_prompt):
     """
