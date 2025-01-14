@@ -132,90 +132,32 @@ def load_history_from_file(filename = HISTORY_FILE):
         with open(filename, "r") as f :
             return json.load(f)
     return []
-
-def memory_status(history, memory_length):
-    current_length = len(history)
-    max_messages = 200 #limite maximale des messages 
-    # Normaliser la progression entre 0 et 1 en fonction du maximum défini
-    progress_value = min(current_length / max_messages, 1.0)
-
-    messages_until_save = memory_length - (current_length % memory_length)
-
-    st.sidebar.metric(
-        label="Messages en mémoire",
-        value=f"{current_length % memory_length}/{memory_length}",
-        delta=f"Encore {messages_until_save} avant la sauvegarde"
-    )
-
-    st.sidebar.progress(progress_value, f"{current_length} messages sur {max_messages}")
-
     
-#Confiuration de la SideBar
 def setup_sidebar():
-    """Configure la barre latérale Streamlit et retourne les options sélectionnées."""
+    """Configure la barre latérale avec le logo, la progression des sections, et le bouton de réinitialisation."""
     st.sidebar.image('TEKIN logo 2019 couleur.png', use_container_width=True)
-    st.sidebar.write("## Options")
-    
-    # Sélection du modèle
-    model_choice = st.sidebar.selectbox(
-        "Choisissez un modèle :",
-        ["llama3-70b-8192", "llama3-8b-8192"]
-    )
-    
-    # Slider pour la longueur de la mémoire
-    memory_length = st.sidebar.slider(
-        "Longueur de mémoire conversationnelle :",
-        min_value=3, max_value=20, value=10, step=2
-    )
-
-    #slider pour le nombre de tokens maximum
-    max_tokens = st.sidebar.slider(
-        "Nombre de tokens utiliser par l'assistant",
-        min_value=50 , max_value= 8000 , value = 2000 , step = 100 
-    )
-    
+    display_section_progress()
     # Bouton pour réinitialiser la conversation
     if st.sidebar.button("Réinitialiser la conversation"):
         save_history_to_file([])  # Réinitialiser le fichier
         st.session_state.chat_history = []
         st.sidebar.success("Conversation réinitialisée.")
-    
-    # Affichage de l'état de la mémoire
-    memory_status(st.session_state.chat_history, memory_length)
-
-
-    st.sidebar.metric(
-    label="Tokens sélectionnés",
-    value=f"{max_tokens} tokens",
-    )
-
-    
-    # Retourner les choix effectués
-    return model_choice, memory_length , max_tokens
-
-# Import nécessaire
-import streamlit as st
-
-# Ajout d'une fonction pour afficher la progression des sections
 def display_section_progress():
-    """Affiche une barre de progression et des indicateurs de progression plus esthétiques."""
+    """Affiche la progression des sections dans la barre latérale."""
+    st.sidebar.write("## Progression")
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
     total_sections = len(sections)
     progress_value = (current_index + 1) / total_sections
 
-    # Afficher la barre de progression
-    st.sidebar.progress(progress_value, text=f"Section {current_index + 1}/{total_sections}")
-
-    # Afficher les sections avec des icônes esthétiques
+    st.sidebar.progress(progress_value, text=f"Section {current_index + 1} sur {total_sections}")
     st.sidebar.write("### Progression des Sections")
     for idx, section in enumerate(sections):
-        if idx < current_index:
-            st.sidebar.markdown(f"✅ <span style='color: green; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
-        elif idx == current_index:
-            st.sidebar.markdown(f"🚀 <span style='color: red ; font-weight: bold;'>{section}</span> (En cours)", unsafe_allow_html=True)
-        else:
-            st.sidebar.markdown(f"⏳ <span style='color: gray; font-weight: bold;'>{section}</span> ", unsafe_allow_html=True)
+        icon = "✅" if idx < current_index else "🚀" if idx == current_index else "⏳"
+        color = "green" if idx < current_index else "red" if idx == current_index else "gray"
+        st.sidebar.markdown(f"{icon} <span style='color: {color}; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
+
+
 
 
 
@@ -252,7 +194,10 @@ init()
 # Obtenir le prompt template mis à jour
 prompt_template = get_updated_prompt_template()
 
-model_choice , memory_length , max_tokens = setup_sidebar()
+model_choice = "llama3-70b-8192"
+memory_length = 20
+max_tokens = 8192
+
 # Initialisation de la mémoire conversationnelle
 memory = ConversationBufferWindowMemory(k=memory_length)
 
@@ -285,7 +230,6 @@ model = load_model()
 # Widget audio
 audio_input_widget()
 
-
 # Champ de saisie pour la question utilisateu
 if result["text"] :
     user_question = input_question_container.text_area(
@@ -303,5 +247,5 @@ else:
 
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
-display_section_progress()  # Affiche la progression des sections
+setup_sidebar()
 display_summary_history()

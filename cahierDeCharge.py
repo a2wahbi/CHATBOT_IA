@@ -286,16 +286,11 @@ def next_section():
             summary_prompt
         )
 
-        # Afficher le prompt de résumé pour débogage
-        st.code(full_summary_prompt)
-
         # Mettre à jour le full prompt pour la nouvelle section
         st.session_state.full_prompt = generate_full_prompt(
             st.session_state.current_section, 
             previous_summaries
         )
-
-        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
     else:
         st.warning("Vous êtes déjà à la dernière section.")
 
