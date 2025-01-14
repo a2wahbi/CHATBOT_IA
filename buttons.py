@@ -50,7 +50,7 @@ def display_interactive_buttons(input_question_container, clear_text, clear_text
     col2.button("🤔 Je ne sais pas", on_click=lambda: clear_text_with_default("Je ne sais pas"),  use_container_width = True)
 
     #boutton pour passer a la nouvelle section 
-    col3.button("Prochaine section", on_click = next_section , use_container_width = True )
+    col3.button("➡️ Prochaine section", on_click = next_section , use_container_width = True )
     # Bouton dans un popover pour télécharger l'historique
     popover = col1.popover("📁 Export" , use_container_width = True)
     if st.session_state.chat_history:  # Vérification si un historique existe
