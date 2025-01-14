@@ -3,6 +3,82 @@ import streamlit as st
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
 from langchain.schema import SystemMessage
 
+
+summary_sections = {
+    "Introduction et Contexte": (
+        "Vous allez résumer la section 'Introduction et Contexte'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
+        "- Présentation du projet : Décrivez le contexte, le problème à résoudre, et les objectifs globaux.\n"
+        "- Parties prenantes : Qui sont les intervenants (client, développeurs, utilisateurs finaux) ? Quels sont leurs rôles et responsabilités ?\n"
+        "- Périmètre du projet : Quelles sont les limites du projet ? Ce qui est inclus et ce qui est exclu.\n\n"
+        "Structure attendue :\n"
+        "- **Objectifs du document** : [Votre réponse ici]\n"
+        "- **Présentation du projet** : [Votre réponse ici]\n"
+        "- **Parties prenantes** : [Votre réponse ici]\n"
+        "- **Périmètre du projet** : [Votre réponse ici]"
+    ),
+    "Description Fonctionnelle": (
+        "Vous allez résumer la section 'Description Fonctionnelle'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Cas d'utilisation : Quels sont les scénarios dans lesquels le système IoT sera utilisé ?\n"
+        "- Fonctionnalités principales : Quels sont les éléments clés du système ? (Collecte de données, transmission, traitement, interface utilisateur, etc.)\n"
+        "- Fonctionnalités secondaires : Quelles fonctionnalités supplémentaires sont prévues ? (Notifications, sauvegarde, mises à jour OTA, etc.)\n\n"
+        "Structure attendue :\n"
+        "- **Cas d'utilisation** : [Votre réponse ici]\n"
+        "- **Fonctionnalités principales** : [Votre réponse ici]\n"
+        "- **Fonctionnalités secondaires** : [Votre réponse ici]"
+    ),
+    "Spécifications Techniques": (
+        "Vous allez résumer la section 'Spécifications Techniques'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Architecture Système : Décrivez le matériel (microcontrôleurs, capteurs, modules de communication, etc.) et le logiciel (système d'exploitation, middleware, applications embarquées).\n"
+        "- Interfaces et Protocoles : Quels sont les interfaces physiques (GPIO, UART, SPI, etc.) et protocoles de communication (MQTT, CoAP, HTTP, etc.) utilisés ?\n"
+        "- Contraintes : Indiquez les contraintes spécifiques (performances, environnementales, sécurité, etc.).\n\n"
+        "Structure attendue :\n"
+        "- **Architecture Système** : [Votre réponse ici]\n"
+        "- **Interfaces et Protocoles** : [Votre réponse ici]\n"
+        "- **Contraintes** : [Votre réponse ici]"
+    ),
+    "Spécifications des Données": (
+        "Vous allez résumer la section 'Spécifications des Données'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Type de données collectées : Décrivez la nature, la fréquence, et la taille des données.\n"
+        "- Flux de données : Comment les données circulent-elles entre les différents modules (edge devices, gateways, cloud) ?\n"
+        "- Stockage et gestion des données : Quels sont les besoins en stockage et les solutions prévues pour la sauvegarde ?\n\n"
+        "Structure attendue :\n"
+        "- **Type de données collectées** : [Votre réponse ici]\n"
+        "- **Flux de données** : [Votre réponse ici]\n"
+        "- **Stockage et gestion des données** : [Votre réponse ici]"
+    ),
+    "Contraintes et Normes": (
+        "Vous allez résumer la section 'Contraintes et Normes'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Réglementations : Quelles sont les normes locales et internationales applicables (CE, FCC, ISO, etc.) ?\n"
+        "- Contraintes financières : Quel est le budget alloué ?\n"
+        "- Contraintes temporelles : Quels sont les délais de livraison et les jalons principaux ?\n"
+        "- Contraintes techniques spécifiques : Quelles sont les exigences en matière de compatibilité, évolutivité, ou autres ?\n\n"
+        "Structure attendue :\n"
+        "- **Réglementations** : [Votre réponse ici]\n"
+        "- **Contraintes financières** : [Votre réponse ici]\n"
+        "- **Contraintes temporelles** : [Votre réponse ici]\n"
+        "- **Contraintes techniques spécifiques** : [Votre réponse ici]"
+    ),
+    "Partie à Externaliser": (
+        "Vous allez résumer la section 'Partie à Externaliser'.\n\n"
+        "Voici les éléments nécessaires à inclure :\n"
+        "- Quels composants matériels ou logiciels doivent être externalisés ?\n"
+        "- Pourquoi ces parties spécifiques doivent-elles être externalisées ? (Manque de compétences internes, gain de temps, etc.)\n"
+        "- Quels sont les critères de sélection des prestataires ou partenaires externes ?\n\n"
+        "Structure attendue :\n"
+        "- **Composants à externaliser** : [Votre réponse ici]\n"
+        "- **Raisons de l'externalisation** : [Votre réponse ici]\n"
+        "- **Critères de sélection des prestataires** : [Votre réponse ici]"
+    )
+}
+
+
+
 # Prompts spécifiques pour chaque section
 section_prompts = {
     "Accueil": """
@@ -149,6 +225,7 @@ Tu es un assistant intelligent de l'entreprise TEKIN, spécialisée dans les pro
 
 **Note importante** : Ce document est confidentiel et appartient à TEKIN. Ne pas reproduire sans autorisation.
 """
+
 def generate_full_prompt(current_section, previous_summaries):
     """
     Génère le prompt complet pour l'IA en combinant :
@@ -185,6 +262,7 @@ def generate_previous_summaries(completed_sections):
         summaries.append(f"Résumé pour {section} : (contenu fictif)")
     return "\n".join(summaries)
 
+
 # Fonction pour générer le Chat Prompt Template
 def get_updated_prompt_template():
     """Retourne le prompt_template mis à jour avec le full prompt actuel."""
@@ -195,6 +273,7 @@ def get_updated_prompt_template():
         HumanMessagePromptTemplate.from_template("{human_input}")
     ])
 
+    
 
 def next_section():
     """Passe à la section suivante et met à jour le full prompt."""
@@ -214,3 +293,26 @@ def next_section():
         st.code(st.session_state.full_prompt)
     else:
         st.warning("Vous êtes déjà à la dernière section.")
+
+def generate_summary_prompt(system_prompt, previous_summaries, section_name, summary_prompt):
+    """
+    Combine le system prompt, les résumés précédents, et le prompt de résumé de la section actuelle.
+
+    Args:
+        system_prompt (str): Le prompt global décrivant le rôle de l'IA.
+        previous_summaries (str): Les résumés des sections précédentes.
+        section_name (str): Le nom de la section actuelle.
+        summary_prompt (str): Le prompt spécifique à la section actuelle.
+
+    Returns:
+        str: Le full prompt combiné.
+    """
+    return f"""
+    {system_prompt}
+
+    ### Résumé des sections précédentes :
+    {previous_summaries}
+
+    ### Section actuelle : {section_name}
+    {summary_prompt}
+"""

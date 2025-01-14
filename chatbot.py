@@ -18,8 +18,7 @@ result = {
     "language": None  # Langue détectée, initialement définie comme None
 }
 model = ""
-#Enregistrer les données dans un fichier JSON 
-HISTORY_FILE = "chat_history.json"
+
 ##############################################################################
 #                               Styles                                       #
 ##############################################################################
@@ -114,6 +113,8 @@ def clear_text_with_default(default_input="Je ne sais pas"):
     except Exception as e:
         st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
 
+#Enregistrer les données dans un fichier JSON 
+HISTORY_FILE = "chat_history.json"
 def save_history_to_file(history, filename = HISTORY_FILE):
     """Enregistre l'historique de la conversation dans un fichier JSON. """
     with open(filename, "w") as f:
