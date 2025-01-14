@@ -10,7 +10,7 @@ import whisper
 import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
-from cahierDeCharge import get_updated_prompt_template , display_summary_history
+from cahierDeCharge import get_updated_prompt_template , display_summary_history , init
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -248,6 +248,7 @@ if 'full_prompt' not in st.session_state:
 if 'history_summary' not in st.session_state:
     st.session_state.history_summary = [] 
 
+init()
 # Obtenir le prompt template mis à jour
 prompt_template = get_updated_prompt_template()
 

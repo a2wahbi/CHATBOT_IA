@@ -3,7 +3,6 @@ import streamlit as st
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
 from langchain.schema import SystemMessage
 
-
 summary_sections = {
     "Introduction et Contexte": "Voici les éléments nécessaires à inclure :\n"
         "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
@@ -326,35 +325,36 @@ def generate_summary_prompt(system_prompt, previous_summaries, section_name, sum
 def generate_summary():
     """Génère un résumé pour la section actuelle et l'ajoute à l'historique des résumés."""
     try:
-        
         # Ignorer la section Accueil
         if st.session_state.current_section == "Accueil":
-            st.info("La section 'Accueil' est ignorée pour le résumé.")
             return
+
         # Vérifier si 'groq_chat' est bien initialisé
         if 'groq_chat' not in st.session_state:
             st.error("groq_chat n'est pas initialisé. Assurez-vous que la configuration est correcte.")
             return
 
-        # Obtenir le template de prompt pour les résumés
-        summary_prompt_template = get_updated_internal_summary_prompt_template()
+        # Vérifier que l'historique des conversations est non vide
+        if not st.session_state.chat_history:
+            st.warning("Aucune conversation disponible pour générer un résumé.")
+            return
 
-        # Préparer l'historique des résumés dans le bon format
+        # Transformer l'historique des conversations en format compatible LangChain
         formatted_history = [
-            {"role": "user", "content": f"Section : {entry['section']}\nRésumé : {entry['summary']}"}
-            for entry in st.session_state.history_summary
+            {'role': 'user', 'content': msg['human']} if idx % 2 == 0 else {'role': 'assistant', 'content': msg['AI']}
+            for idx, msg in enumerate(st.session_state.chat_history)
         ]
 
-        # Formater le prompt pour générer le résumé
-        formatted_summary_prompt = summary_prompt_template.format_prompt(
-            history_summary=formatted_history,  # Historique des résumés formaté
-            human_input="Génère un résumé pour cette section"
+        # Construire le prompt
+        summary_prompt = prompt_summary.format_prompt(
+            chat_history=formatted_history,
+            human_input=f"Résume cette conversation pour la section '{st.session_state.current_section}'."
         ).to_messages()
 
-        # Appeler Groq pour générer le résumé
-        response = st.session_state.groq_chat(formatted_summary_prompt)
+        # Appeler le modèle pour générer le résumé
+        response = st.session_state.groq_chat(summary_prompt)
 
-        # Ajouter le résumé généré à l'historique interne
+        # Ajouter le résumé généré à l'historique des résumés
         st.session_state.history_summary.append({
             'section': st.session_state.current_section,
             'summary': response.content
@@ -363,6 +363,7 @@ def generate_summary():
         st.success("Résumé généré avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de la génération du résumé : {str(e)}")
+
 
 
 def get_updated_internal_summary_prompt_template():
@@ -383,3 +384,12 @@ def display_summary_history():
                 st.text_area("Résumé :", entry['summary'], height=150, key=f"summary_{entry['section']}")
     else:
         st.info("Aucun résumé disponible.")
+
+def init():
+    """Initialise les variables globales nécessaires."""
+    global prompt_summary
+    prompt_summary = ChatPromptTemplate.from_messages([
+        SystemMessage(content="Tu es un assistant qui aide à résumer des conversations pour un cahier des charges."),
+        MessagesPlaceholder(variable_name="chat_history"),
+        HumanMessagePromptTemplate.from_template("{human_input}")
+    ])
