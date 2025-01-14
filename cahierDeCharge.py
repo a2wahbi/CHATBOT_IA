@@ -3,6 +3,10 @@ import streamlit as st
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
 from langchain.schema import SystemMessage
 
+
+##############################################################################
+#                             1. DÉFINITIONS DES DONNÉES                     #
+##############################################################################
 summary_sections = {
     "Introduction et Contexte": "Voici les éléments nécessaires à inclure :\n"
         "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
@@ -209,7 +213,9 @@ Tu es un assistant intelligent de l'entreprise TEKIN, spécialisée dans les pro
 
 **Note importante** : Ce document est confidentiel et appartient à TEKIN. Ne pas reproduire sans autorisation.
 """
-
+##############################################################################
+#                       2. FONCTIONS DE GÉNÉRATION DE PROMPTS               #
+##############################################################################
 def generate_full_prompt(current_section, previous_summaries):
     """
     Génère le prompt complet pour l'IA en combinant :
@@ -240,59 +246,18 @@ def generate_full_prompt(current_section, previous_summaries):
     return full_prompt
 
 def generate_previous_summaries(completed_sections):
-    """Génère un résumé basé sur les sections complétées."""
+    """combiner tous les résumés déja géneré """
+
+    #Initialisation d’une liste pour stocker les résumés
     summaries = []
+
+    #Parcourir les sections complétées
     for section in completed_sections:
+        #Ajouter à la liste summaries une chaîne de caractères au format :  Résumé pour [nom de la section] : (contenu fictif)
+        #remplacer contenu fictif par le résumé de la section 
         summaries.append(f"Résumé pour {section} : (contenu fictif)")
+    #Combiner tous les résumés en un seul texte
     return "\n".join(summaries)
-
-
-# Fonction pour générer le Chat Prompt Template
-def get_updated_prompt_template():
-    """Retourne le prompt_template mis à jour avec le full prompt actuel."""
-    full_prompt = st.session_state.get("full_prompt", "Default system prompt")
-    return ChatPromptTemplate.from_messages([
-        SystemMessage(content=full_prompt),
-        MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{human_input}")
-    ])
-
-    
-
-def next_section():
-    """Passe à la section suivante, génère un résumé, et met à jour le full prompt."""
-    sections = list(section_prompts.keys())
-    current_index = sections.index(st.session_state.current_section)
-
-        # Générer le résumé pour la section actuelle
-    generate_summary()
-
-    if current_index < len(sections) - 1:
-        # Passer à la section suivante
-        st.session_state.current_section = sections[current_index + 1]
-
-        # Générer les résumés précédents
-        previous_summaries = generate_previous_summaries(sections[:current_index + 1])
-
-        # Récupérer le prompt de résumé pour la nouvelle section
-        section_name = st.session_state.current_section
-        summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
-
-        # Combiner les prompts pour le résumé
-        full_summary_prompt = generate_summary_prompt(
-            system_prompt, 
-            previous_summaries, 
-            section_name, 
-            summary_prompt
-        )
-
-        # Mettre à jour le full prompt pour la nouvelle section
-        st.session_state.full_prompt = generate_full_prompt(
-            st.session_state.current_section, 
-            previous_summaries
-        )
-    else:
-        st.warning("Vous êtes déjà à la dernière section.")
 
 
 def generate_summary_prompt(system_prompt, previous_summaries, section_name, summary_prompt):
@@ -317,6 +282,59 @@ def generate_summary_prompt(system_prompt, previous_summaries, section_name, sum
     ### Section actuelle : {section_name}
     {summary_prompt}
 """
+
+    
+##############################################################################
+#                     3. FONCTIONS DE NAVIGATION ENTRE SECTIONS             #
+##############################################################################
+def next_section():
+    """Passe à la section suivante, génère un résumé, et met à jour le full prompt."""
+    
+    #Renvoie toutes les sections disponibles sous forme de clés dans le dictionnaire section_prompts
+    sections = list(section_prompts.keys())
+
+    #Détermine la position de la section actuelle dans la liste des sections.
+    current_index = sections.index(st.session_state.current_section)
+
+    # Générer le résumé pour la section actuelle
+    generate_summary()
+
+    #Vérifie s'il y'as une section suivante 
+    if current_index < len(sections) - 1:
+
+        # Passer à la section suivante
+        st.session_state.current_section = sections[current_index + 1]
+
+        # Combiner l'ensemble de résumé 
+        previous_summaries = generate_previous_summaries(sections[:current_index + 1])
+
+        # Récupérer le prompt de résumé pour la nouvelle section
+        section_name = st.session_state.current_section
+        summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
+
+        st.code(summary_prompt)
+        # Combiner les prompts pour le résumé
+        full_summary_prompt = generate_summary_prompt(
+            system_prompt, 
+            previous_summaries, 
+            section_name, 
+            summary_prompt
+        )
+
+        st.code("full \n " + full_summary_prompt )
+
+        # Mettre à jour le prompt global utilisé pour guider l’IA dans la nouvelle section.
+        st.session_state.full_prompt = generate_full_prompt(
+            st.session_state.current_section, 
+            previous_summaries
+        )
+    else:
+        st.warning("Vous êtes déjà à la dernière section.")
+
+##############################################################################
+#                     4. FONCTIONS DE GESTION DES RÉSUMÉS                   #
+##############################################################################
+
 def generate_summary():
     """Génère un résumé pour la section actuelle et l'ajoute à l'historique des résumés."""
     try:
@@ -354,21 +372,8 @@ def generate_summary():
             'section': st.session_state.current_section,
             'summary': response.content
         })
-
-        st.success("Résumé généré avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de la génération du résumé : {str(e)}")
-
-
-
-def get_updated_internal_summary_prompt_template():
-    """Retourne un template de prompt mis à jour pour les résumés internes."""
-    full_summary_prompt = st.session_state.get("full_summary_prompt", "Default summary prompt")
-    return ChatPromptTemplate.from_messages([
-        SystemMessage(content=full_summary_prompt),
-        MessagesPlaceholder(variable_name="history_summary"),
-        HumanMessagePromptTemplate.from_template("{human_input}")
-    ])
 
 def display_summary_history():
     """Affiche l'historique des résumés dans l'interface Streamlit."""
@@ -380,6 +385,33 @@ def display_summary_history():
     else:
         st.info("Aucun résumé disponible.")
 
+
+##############################################################################
+#                     5. FONCTIONS DE GESTION DES TEMPLATES DE PROMPTS       #
+##############################################################################
+
+def get_updated_internal_summary_prompt_template():
+    """Retourne un template de prompt mis à jour pour les résumés internes."""
+    full_summary_prompt = st.session_state.get("full_summary_prompt", "Default summary prompt")
+    return ChatPromptTemplate.from_messages([
+        SystemMessage(content=full_summary_prompt),
+        MessagesPlaceholder(variable_name="history_summary"),
+        HumanMessagePromptTemplate.from_template("{human_input}")
+    ])
+
+# Fonction pour générer le Chat Prompt Template
+def get_updated_prompt_template():
+    """Retourne le prompt_template mis à jour avec le full prompt actuel."""
+    full_prompt = st.session_state.get("full_prompt", "Default system prompt")
+    return ChatPromptTemplate.from_messages([
+        SystemMessage(content=full_prompt),
+        MessagesPlaceholder(variable_name="chat_history"),
+        HumanMessagePromptTemplate.from_template("{human_input}")
+    ])
+
+##############################################################################
+#                            6. INITIALISATION                              #
+##############################################################################
 def init():
     """Initialise les variables globales nécessaires."""
     global prompt_summary
