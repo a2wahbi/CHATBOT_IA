@@ -382,8 +382,22 @@ def generate_summary_prompt(system_summary_prompt, previous_summaries, section_n
 ##############################################################################
 #                     3. FONCTIONS DE NAVIGATION ENTRE SECTIONS             #
 ##############################################################################
+def generate_summary_document():
+    """Génère un document combinant tous les résumés en un seul fichier texte sans redondance."""
+    seen_sections = set()  # Pour suivre les sections déjà ajoutées
+    summary_data = []
+
+    for entry in st.session_state.history_summary:
+        section_title = f"### {entry['section']}"
+        if section_title not in seen_sections:
+            seen_sections.add(section_title)
+            # Ajouter le titre de la section et son contenu
+            summary_data.append(f"{section_title}\n{entry['summary']}")
+    
+    return "\n\n".join(summary_data)
+
 def next_section():
-    """Passe à la section suivante, génère un résumé, et pose la question initiale de la nouvelle section."""
+    """Passe à la section suivante ou propose de télécharger le résumé à la fin."""
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
 
@@ -396,13 +410,12 @@ def next_section():
 
         # Ajouter le titre de la section à l'historique
         st.session_state.chat_history.append({
-            'human': None,  # Pas de message utilisateur
-            'AI': f"### {st.session_state.current_section}"  # Titre de la section
+            'human': None,
+            'AI': f"### {st.session_state.current_section}"
         })
-        # Combiner l'ensemble de résumé 
-        previous_summaries = generate_previous_summaries(sections[:current_index + 1])
 
         # Mettre à jour les prompts
+        previous_summaries = generate_previous_summaries(sections[:current_index + 1])
         section_name = st.session_state.current_section
         summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
         st.session_state.full_summary_prompt = generate_summary_prompt(
@@ -416,12 +429,22 @@ def next_section():
             previous_summaries
         )
 
-        # Ajouter la question initiale à l'historique des messages
+        # Ajouter la question initiale de la section
         initial_question = initial_questions.get(section_name, "")
         if initial_question:
             st.session_state.chat_history.append({"human": "", "AI": initial_question})
     else:
-        st.warning("Vous êtes déjà à la dernière section.")
+        # Afficher un message et le bouton pour télécharger le résumé
+        st.success("Vous avez terminé toutes les sections ! Vous pouvez maintenant télécharger le résumé complet.")
+        summary_content = generate_summary_document()
+        
+        # Bouton pour télécharger le fichier
+        st.download_button(
+            label="📥 Télécharger le résumé en .txt",
+            data=summary_content,
+            file_name="resume_projet_iot.txt",
+            mime="text/plain"
+        )
 ##############################################################################
 #                     4. FONCTIONS DE GESTION DES RÉSUMÉS                   #
 ##############################################################################
