@@ -37,7 +37,6 @@ def save_to_google_sheets(user_message, assistant_response, section_name):
         
         # Connexion à Google Sheets
         sheet = connect_to_google_sheets()
-        st.write(sheet.title)
         
         # Ajouter une nouvelle ligne avec les données
         sheet.append_row([timestamp, user_message, assistant_response, section_name])

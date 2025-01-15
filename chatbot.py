@@ -12,7 +12,7 @@ from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from layout import get_historique_container , get_title_container , get_input_question_container
-from database import save_to_google_sheets , test_google_sheets
+from database import save_to_google_sheets
 from dotenv import load_dotenv
 
 result = {
@@ -64,7 +64,6 @@ def audio_input_widget ():
 def clear_text():
         """Génère une réponse uniquement si l'entrée utilisateur n'est pas vide."""
         user_input = st.session_state.get("text", "").strip()
-        test_google_sheets()
         # Ignorer si l'entrée utilisateur est vide
         if not user_input:
             historique_container.warning("Veuillez entrer un texte avant d'envoyer.", icon="⚠️")
