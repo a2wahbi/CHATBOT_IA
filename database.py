@@ -37,9 +37,20 @@ def save_to_google_sheets(user_message, assistant_response, section_name):
         
         # Connexion à Google Sheets
         sheet = connect_to_google_sheets()
+        st.write(sheet.title)
         
         # Ajouter une nouvelle ligne avec les données
         sheet.append_row([timestamp, user_message, assistant_response, section_name])
         print("Données enregistrées avec succès.")
     except Exception as e:
         print(f"Erreur lors de l'enregistrement des données : {e}")
+
+def test_google_sheets():
+    try:
+        sheet = connect_to_google_sheets()
+        st.write(f"Connexion réussie à la feuille : {sheet.title}")
+        # Lire quelques lignes pour vérifier
+        data = sheet.get_all_records()
+        st.write(f"Données actuelles dans la feuille : {data}")
+    except Exception as e:
+        st.write(f"Erreur de connexion à Google Sheets : {e}")
