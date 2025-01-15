@@ -8,82 +8,142 @@ from langchain.schema import SystemMessage
 #                             1. DÉFINITIONS DES DONNÉES                     #
 ##############################################################################
 system_summary_prompt = """
-Tu es un assistant spécialisé dans la rédaction de résumés techniques pour des projets IoT. 
-Ton rôle est de synthétiser les informations collectées au cours des conversations et de rédiger des résumés clairs, précis et structurés.
+Tu es un assistant spécialisé dans la rédaction de résumés techniques pour des projets IoT.
+Ton rôle est de synthétiser les informations collectées et de rédiger des résumés clairs, précis et structurés.
 
-### Directives pour générer le résumé :
-1. Respecte strictement la structure fournie pour chaque section.
+### Directives générales pour rédiger le résumé :
+1. Respecte strictement la structure attendue pour chaque section.
 2. Utilise un langage professionnel et formel.
-3. Ne pose aucune question ni ne fais de suppositions. Limite-toi aux informations disponibles.
-4. Si certaines informations manquent, indique clairement "[Information manquante]".
-5. Évite toute redondance ou digression.
+3. Limite-toi uniquement aux informations fournies par l'utilisateur.
+4. Si une information est manquante, indique clairement "[Information manquante]".
+5. Ne pose aucune question dans le résumé et évite toute supposition.
 
-### Structure générale attendue pour chaque résumé :
-- **Titre de la section** : [Nom de la section]
-- **Résumé structuré** : Remplis chaque champ comme indiqué dans le format fourni.
-
-Assure-toi que chaque résumé est adapté à l'objectif du projet IoT et qu'il peut être directement intégré dans un cahier des charges formel.
 """
 summary_sections = {
-    "Introduction et Contexte": "Voici les éléments nécessaires à inclure :\n"
-        "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
-        "- Présentation du projet : Décrivez le contexte, le problème à résoudre, et les objectifs globaux.\n"
-        "- Parties prenantes : Qui sont les intervenants (client, développeurs, utilisateurs finaux) ? Quels sont leurs rôles et responsabilités ?\n"
-        "- Périmètre du projet : Quelles sont les limites du projet ? Ce qui est inclus et ce qui est exclu.\n\n"
-        "Structure attendue :\n"
-        "- **Objectifs du document** : [Votre réponse ici]\n"
-        "- **Présentation du projet** : [Votre réponse ici]\n"
-        "- **Parties prenantes** : [Votre réponse ici]\n"
-        "- **Périmètre du projet** : [Votre réponse ici]",
+    "Introduction et Contexte": """
+    ### Introduction et Contexte
     
-    "Description Fonctionnelle": "Voici les éléments nécessaires à inclure :\n"
-        "- Cas d'utilisation : Quels sont les scénarios dans lesquels le système IoT sera utilisé ?\n"
-        "- Fonctionnalités principales : Quels sont les éléments clés du système ? (Collecte de données, transmission, traitement, interface utilisateur, etc.)\n"
-        "- Fonctionnalités secondaires : Quelles fonctionnalités supplémentaires sont prévues ? (Notifications, sauvegarde, mises à jour OTA, etc.)\n\n"
-        "Structure attendue :\n"
-        "- **Cas d'utilisation** : [Votre réponse ici]\n"
-        "- **Fonctionnalités principales** : [Votre réponse ici]\n"
-        "- **Fonctionnalités secondaires** : [Votre réponse ici]",
+    Cette section a pour objectif de fournir une vue d'ensemble du projet. Remplis chaque champ de manière concise et précise en suivant ces points :
     
-    "Spécifications Techniques": "Voici les éléments nécessaires à inclure :\n"
-        "- Architecture Système : Décrivez le matériel (microcontrôleurs, capteurs, modules de communication, etc.) et le logiciel (système d'exploitation, middleware, applications embarquées).\n"
-        "- Interfaces et Protocoles : Quels sont les interfaces physiques (GPIO, UART, SPI, etc.) et protocoles de communication (MQTT, CoAP, HTTP, etc.) utilisés ?\n"
-        "- Contraintes : Indiquez les contraintes spécifiques (performances, environnementales, sécurité, etc.).\n\n"
-        "Structure attendue :\n"
-        "- **Architecture Système** : [Votre réponse ici]\n"
-        "- **Interfaces et Protocoles** : [Votre réponse ici]\n"
-        "- **Contraintes** : [Votre réponse ici]",
-    
-    "Spécifications des Données": "Voici les éléments nécessaires à inclure :\n"
-        "- Type de données collectées : Décrivez la nature, la fréquence, et la taille des données.\n"
-        "- Flux de données : Comment les données circulent-elles entre les différents modules (edge devices, gateways, cloud) ?\n"
-        "- Stockage et gestion des données : Quels sont les besoins en stockage et les solutions prévues pour la sauvegarde ?\n\n"
-        "Structure attendue :\n"
-        "- **Type de données collectées** : [Votre réponse ici]\n"
-        "- **Flux de données** : [Votre réponse ici]\n"
-        "- **Stockage et gestion des données** : [Votre réponse ici]",
-    
-    "Contraintes et Normes": "Voici les éléments nécessaires à inclure :\n"
-        "- Réglementations : Quelles sont les normes locales et internationales applicables (CE, FCC, ISO, etc.) ?\n"
-        "- Contraintes financières : Quel est le budget alloué ?\n"
-        "- Contraintes temporelles : Quels sont les délais de livraison et les jalons principaux ?\n"
-        "- Contraintes techniques spécifiques : Quelles sont les exigences en matière de compatibilité, évolutivité, ou autres ?\n\n"
-        "Structure attendue :\n"
-        "- **Réglementations** : [Votre réponse ici]\n"
-        "- **Contraintes financières** : [Votre réponse ici]\n"
-        "- **Contraintes temporelles** : [Votre réponse ici]\n"
-        "- **Contraintes techniques spécifiques** : [Votre réponse ici]",
-    
-    "Partie à Externaliser": "Voici les éléments nécessaires à inclure :\n"
-        "- Quels composants matériels ou logiciels doivent être externalisés ?\n"
-        "- Pourquoi ces parties spécifiques doivent-elles être externalisées ? (Manque de compétences internes, gain de temps, etc.)\n"
-        "- Quels sont les critères de sélection des prestataires ou partenaires externes ?\n\n"
-        "Structure attendue :\n"
-        "- **Composants à externaliser** : [Votre réponse ici]\n"
-        "- **Raisons de l'externalisation** : [Votre réponse ici]\n"
-        "- **Critères de sélection des prestataires** : [Votre réponse ici]"
-}
+    - **Objectifs du document** : Quels sont les buts principaux de ce cahier des charges ? Définis les grandes lignes des attentes du client.
+    - **Présentation du projet** : Décris le contexte, les problèmes que le projet cherche à résoudre, et les objectifs globaux.
+    - **Parties prenantes** : Liste les intervenants clés (client, développeurs, utilisateurs finaux) et précise leurs rôles.
+    - **Périmètre du projet** : Délimite ce qui est inclus et exclu du projet, en spécifiant les limites claires.
 
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Objectifs du document** : [Votre réponse ici]
+    - **Présentation du projet** : [Votre réponse ici]
+    - **Parties prenantes** : [Votre réponse ici]
+    - **Périmètre du projet** : [Votre réponse ici]
+    """,
+
+    "Description Fonctionnelle": """
+    ### Description Fonctionnelle
+    
+    Cette section décrit les fonctionnalités principales et secondaires du système IoT. Remplis chaque champ en suivant ces points :
+    
+    - **Cas d'utilisation** : Présente les scénarios dans lesquels le système sera utilisé. Qui sont les utilisateurs et comment interagissent-ils avec le système ?
+    - **Fonctionnalités principales** : Détaille les fonctionnalités essentielles (ex. collecte de données, transmission, interface utilisateur).
+    - **Fonctionnalités secondaires** : Liste les fonctionnalités supplémentaires qui apportent une valeur ajoutée (ex. notifications, mises à jour OTA).
+
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Cas d'utilisation** : [Votre réponse ici]
+    - **Fonctionnalités principales** : [Votre réponse ici]
+    - **Fonctionnalités secondaires** : [Votre réponse ici]
+    """,
+
+    "Spécifications Techniques": """
+    ### Spécifications Techniques
+    
+    Cette section détaille les aspects techniques du système IoT. Renseigne les champs suivants avec précision :
+    
+    - **Architecture Système** : Décris le matériel (microcontrôleurs, capteurs, modules de communication) et le logiciel (systèmes d'exploitation, middleware, applications embarquées).
+    - **Interfaces et Protocoles** : Précise les interfaces physiques (GPIO, UART, SPI, etc.) et les protocoles de communication utilisés (ex. MQTT, CoAP).
+    - **Contraintes** : Liste les contraintes spécifiques (performances, environnementales, sécurité, etc.).
+
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Architecture Système** : [Votre réponse ici]
+    - **Interfaces et Protocoles** : [Votre réponse ici]
+    - **Contraintes** : [Votre réponse ici]
+    """,
+
+    "Spécifications des Données": """
+    ### Spécifications des Données
+    
+    Cette section se concentre sur les données collectées, leur traitement et leur stockage. Remplis chaque champ en suivant ces points :
+    
+    - **Type de données collectées** : Décris les types de données, leur fréquence de collecte, et leur taille approximative.
+    - **Flux de données** : Explique comment les données circulent entre les différents modules (ex. edge devices, gateways, cloud).
+    - **Stockage et gestion des données** : Indique les besoins en stockage, les mécanismes de sauvegarde, et les méthodes de gestion des données.
+
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Type de données collectées** : [Votre réponse ici]
+    - **Flux de données** : [Votre réponse ici]
+    - **Stockage et gestion des données** : [Votre réponse ici]
+    """,
+
+    "Contraintes et Normes": """
+    ### Contraintes et Normes
+    
+    Cette section identifie les contraintes et réglementations à respecter. Fournis les informations pour chaque point ci-dessous :
+    
+    - **Réglementations** : Quelles normes locales et internationales s'appliquent (ex. CE, FCC, ISO) ?
+    - **Contraintes financières** : Quel est le budget alloué ?
+    - **Contraintes temporelles** : Quels sont les délais de livraison et les jalons principaux ?
+    - **Contraintes techniques spécifiques** : Précise les exigences particulières (ex. compatibilité, évolutivité).
+
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Réglementations** : [Votre réponse ici]
+    - **Contraintes financières** : [Votre réponse ici]
+    - **Contraintes temporelles** : [Votre réponse ici]
+    - **Contraintes techniques spécifiques** : [Votre réponse ici]
+    """,
+
+    "Partie à Externaliser": """
+    ### Partie à Externaliser
+    
+    Cette section identifie les parties du projet à externaliser. Complète chaque champ comme suit :
+    
+    - **Composants à externaliser** : Liste les matériels ou logiciels qui doivent être externalisés.
+    - **Raisons de l'externalisation** : Explique pourquoi ces parties spécifiques doivent être externalisées (ex. manque de compétences internes, gain de temps).
+    - **Critères de sélection des prestataires** : Décris les critères pour choisir les prestataires externes.
+
+    ### Restrictions importantes :
+    1. Utilise uniquement les informations fournies dans l'historique de la conversation.
+    2. Indique clairement **"[Information manquante]"** pour tout champ non renseigné.
+    3. Ne pose pas de questions, ne fais pas de suppositions, et ne propose pas d'ajouts non demandés.
+
+    ### Structure attendue :
+    - **Composants à externaliser** : [Votre réponse ici]
+    - **Raisons de l'externalisation** : [Votre réponse ici]
+    - **Critères de sélection des prestataires** : [Votre réponse ici]
+    """
+}
 # Prompts spécifiques pour chaque section
 section_prompts = {
     "Accueil": """
@@ -330,14 +390,14 @@ def next_section():
 
         st.code(summary_prompt)
         # Combiner les prompts pour le résumé
-        full_summary_prompt = generate_summary_prompt(
+        st.session_state.full_summary_prompt = generate_summary_prompt(
             system_summary_prompt, 
             previous_summaries, 
             section_name, 
             summary_prompt
         )
 
-        st.code("full \n " + full_summary_prompt )
+        st.code("full \n " + st.session_state.full_summary_prompt )
 
         # Mettre à jour le prompt global utilisé pour guider l’IA dans la nouvelle section.
         st.session_state.full_prompt = generate_full_prompt(
@@ -438,9 +498,12 @@ def get_updated_prompt_template():
 ##############################################################################
 def init():
     """Initialise les variables globales nécessaires."""
+
+    # Initialiser le full_summary_prompt avec system_summary_prompt
+    st.session_state.full_summary_prompt = system_summary_prompt
     global prompt_summary
     prompt_summary = ChatPromptTemplate.from_messages([
-        SystemMessage(content="Tu es un assistant qui aide à résumer des conversations pour un cahier des charges."),
+        SystemMessage(content=st.session_state.full_summary_prompt),
         MessagesPlaceholder(variable_name="chat_history"),
         HumanMessagePromptTemplate.from_template("{human_input}")
     ])
