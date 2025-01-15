@@ -41,6 +41,7 @@ def display_interactive_buttons(input_question_container, clear_text, clear_text
         clear_text (callable): Fonction appelée lors du clic sur le bouton 'Envoyer'.
         clear_text_with_default (callable): Fonction appelée lors du clic sur le bouton 'Je ne sais pas'.
     """
+
     col1, col2, col3 , col4 = input_question_container.columns([1,1.4,1.5,1])
 
     # Bouton Envoyer

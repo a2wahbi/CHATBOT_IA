@@ -60,7 +60,14 @@ def audio_input_widget ():
 #                               Fonction Utiles                                         #
 ########################################################################################
 def clear_text():
-            try:
+        """Génère une réponse uniquement si l'entrée utilisateur n'est pas vide."""
+        user_input = st.session_state.get("text", "").strip()
+    
+        # Ignorer si l'entrée utilisateur est vide
+        if not user_input:
+            historique_container.warning("Veuillez entrer un texte avant d'envoyer.", icon="⚠️")
+            return
+        try:
                 # Transform chat history to LangChain-compatible format
                 formatted_history = []
                 for message in st.session_state.chat_history:
@@ -82,10 +89,10 @@ def clear_text():
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
-            except Exception as e:
+        except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
                             #Clean the user input  
-            st.session_state["text"] = ""  
+        st.session_state["text"] = ""  
 
 def clear_text_with_default(default_input="Je ne sais pas"):
     """Fonction similaire à clear_text, mais prend un texte par défaut comme entrée."""
