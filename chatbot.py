@@ -213,13 +213,32 @@ conversation = ConversationChain(
 )
 
 # Affichage de l'historique de la conversation
-historique_container.subheader("Historique de la conversation")
+historique_container.subheader("Conversation")
 for message in st.session_state.chat_history:
-    with st.spinner("En écriture..."):
-        if message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
-            historique_container.chat_message("user").write(message["human"])
-        if message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
-            historique_container.chat_message("assistant").write(message["AI"])
+    if message['human'] is None and message['AI'].startswith("###"):
+                # Afficher les titres de section avec une couleur personnalisée
+                historique_container.markdown(
+            f"""
+            <h3 style='
+                color: #FF5733; 
+                font-size: 24px; 
+                font-weight: bold; 
+                text-align: center; 
+                margin-top: 20px; 
+                margin-bottom: 10px; 
+                border-bottom: 2px solid #FF5733;
+                padding-bottom: 5px;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            '>{message['AI'][4:]}</h3>
+            """, 
+            unsafe_allow_html=True
+        )
+    else: 
+        with st.spinner("En écriture..."):
+            if message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
+                historique_container.chat_message("user").write(message["human"])
+            if message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
+                historique_container.chat_message("assistant").write(message["AI"])
 
 # Charger le modèle Whisper
 model = load_model()

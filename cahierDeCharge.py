@@ -394,6 +394,11 @@ def next_section():
         # Passer à la section suivante
         st.session_state.current_section = sections[current_index + 1]
 
+        # Ajouter le titre de la section à l'historique
+        st.session_state.chat_history.append({
+            'human': None,  # Pas de message utilisateur
+            'AI': f"### {st.session_state.current_section}"  # Titre de la section
+        })
         # Combiner l'ensemble de résumé 
         previous_summaries = generate_previous_summaries(sections[:current_index + 1])
 
