@@ -157,11 +157,6 @@ def display_section_progress():
         color = "green" if idx < current_index else "red" if idx == current_index else "gray"
         st.sidebar.markdown(f"{icon} <span style='color: {color}; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
 
-
-
-
-
-
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
@@ -221,8 +216,10 @@ conversation = ConversationChain(
 historique_container.subheader("Historique de la conversation")
 for message in st.session_state.chat_history:
     with st.spinner("En écriture..."):
-        historique_container.chat_message("user").write(message['human'])
-        historique_container.chat_message("assistant").write(message['AI'])
+        if message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
+            historique_container.chat_message("user").write(message["human"])
+        if message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
+            historique_container.chat_message("assistant").write(message["AI"])
 
 # Charger le modèle Whisper
 model = load_model()

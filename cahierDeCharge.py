@@ -7,6 +7,14 @@ from langchain.schema import SystemMessage
 ##############################################################################
 #                             1. DÉFINITIONS DES DONNÉES                     #
 ##############################################################################
+initial_questions = {
+    "Introduction et Contexte": "Pouvez-vous me donner une vue d'ensemble de votre projet IoT ? Quels sont vos objectifs principaux ?",
+    "Description Fonctionnelle": "Quels sont les cas d'utilisation prévus pour ce système IoT ?",
+    "Spécifications Techniques": "Pouvez-vous décrire les composants matériels et logiciels envisagés pour ce projet ?",
+    "Spécifications des Données": "Quels types de données votre système IoT collectera-t-il, et comment seront-elles gérées ?",
+    "Contraintes et Normes": "Y a-t-il des contraintes spécifiques ou des normes réglementaires à respecter pour ce projet ?",
+    "Partie à Externaliser": "Quels éléments de ce projet souhaitez-vous externaliser, et pourquoi ?"
+}
 system_summary_prompt = """
 Tu es un assistant spécialisé dans la rédaction de résumés techniques pour des projets IoT.
 Ton rôle est de synthétiser les informations collectées et de rédiger des résumés clairs, précis et structurés.
@@ -364,49 +372,42 @@ def generate_summary_prompt(system_summary_prompt, previous_summaries, section_n
 #                     3. FONCTIONS DE NAVIGATION ENTRE SECTIONS             #
 ##############################################################################
 def next_section():
-    """Passe à la section suivante, génère un résumé, et met à jour le full prompt."""
-    
-    #Renvoie toutes les sections disponibles sous forme de clés dans le dictionnaire section_prompts
+    """Passe à la section suivante, génère un résumé, et pose la question initiale de la nouvelle section."""
     sections = list(section_prompts.keys())
-
-    #Détermine la position de la section actuelle dans la liste des sections.
     current_index = sections.index(st.session_state.current_section)
 
     # Générer le résumé pour la section actuelle
     generate_summary()
 
-    #Vérifie s'il y'as une section suivante 
     if current_index < len(sections) - 1:
-
         # Passer à la section suivante
         st.session_state.current_section = sections[current_index + 1]
 
         # Combiner l'ensemble de résumé 
         previous_summaries = generate_previous_summaries(sections[:current_index + 1])
 
-        # Récupérer le prompt de résumé pour la nouvelle section
+        # Mettre à jour les prompts
         section_name = st.session_state.current_section
         summary_prompt = summary_sections.get(section_name, "Aucun prompt spécifique pour cette section.")
-
-        st.code(summary_prompt)
-        # Combiner les prompts pour le résumé
         st.session_state.full_summary_prompt = generate_summary_prompt(
             system_summary_prompt, 
             previous_summaries, 
             section_name, 
             summary_prompt
         )
-
-        st.code("full \n " + st.session_state.full_summary_prompt )
-
-        # Mettre à jour le prompt global utilisé pour guider l’IA dans la nouvelle section.
         st.session_state.full_prompt = generate_full_prompt(
             st.session_state.current_section, 
             previous_summaries
         )
+
+        # Ajouter la question initiale à l'historique des messages
+        initial_question = initial_questions.get(section_name, "")
+        if initial_question:
+            st.session_state.chat_history.append({"human": "", "AI": initial_question})
+
+        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
     else:
         st.warning("Vous êtes déjà à la dernière section.")
-
 ##############################################################################
 #                     4. FONCTIONS DE GESTION DES RÉSUMÉS                   #
 ##############################################################################
