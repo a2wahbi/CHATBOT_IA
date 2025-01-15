@@ -1,18 +1,30 @@
-import gspread
+import os
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-
+import streamlit as st
+import gspread
 def connect_to_google_sheets():
-    """Connecte à Google Sheets et retourne la feuille spécifiée."""
+    """Connecte à Google Sheets en fonction de l'environnement."""
     try:
-        # Définir la portée des autorisations
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+        # Vérifier l'environnement
+        env = os.getenv("ENV", "local")  # Par défaut, on considère l'environnement local
         
-        # Charger les credentials depuis un fichier sécurisé
-        creds = ServiceAccountCredentials.from_json_keyfile_name("chatbotiatekin-e779d1bd984d.json", scope)
+        if env == "production":
+            # En ligne (Streamlit Cloud), utiliser les secrets Streamlit
+            credentials_json = st.secrets["GOOGLE_CREDENTIALS"]
+            creds_dict = json.loads(credentials_json)
+        else:
+            # En local, utiliser le fichier credentials.json
+            creds_path = "chatbotiatekin-e779d1bd984d.json"
+            with open(creds_path, "r") as f:
+                creds_dict = json.load(f)
+
+        # Autoriser les credentials
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        
-        # Ouvrir la feuille Google Sheets
         return client.open("Conversations IoT").sheet1
     except Exception as e:
         raise RuntimeError(f"Erreur de connexion à Google Sheets : {e}")
