@@ -12,6 +12,8 @@ from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from layout import get_historique_container , get_title_container , get_input_question_container
+from database import save_to_google_sheets
+from dotenv import load_dotenv
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -85,7 +87,9 @@ def clear_text():
 
                 # Add the user input and AI response to the session's chat history
                 st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
-
+                
+                # ajoute une nouvelle ligne dans la feuille de google sheets 
+                save_to_google_sheets(st.session_state["text"], response.content, st.session_state.current_section)
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
@@ -177,7 +181,7 @@ input_question_container = get_input_question_container()
 title_container.title("🤖 TEKIN Assistant Chatbot !")
 title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
 
-
+load_dotenv() 
 # Initialisation de l'historique de conversation dans la session
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = load_history_from_file()
