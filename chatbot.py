@@ -10,7 +10,7 @@ import whisper
 import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
-from cahierDeCharge import get_updated_prompt_template , display_summary_history , init
+from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from layout import get_historique_container , get_title_container , get_input_question_container
 
 result = {
@@ -269,6 +269,16 @@ for message in st.session_state.chat_history:
             '>{message['AI'][4:].strip()}</h3>
             """, 
             unsafe_allow_html=True
+        )
+
+    elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
+        # Bouton de téléchargement
+        download_content = generate_summary_document()
+        historique_container.download_button(
+            label="📥 Télécharger le résumé en .txt",
+            data=download_content,
+            file_name="resume_projet_iot.txt",
+            mime="text/plain"
         )
     else:
         with st.spinner("En écriture..."):

@@ -384,15 +384,11 @@ def generate_summary_prompt(system_summary_prompt, previous_summaries, section_n
 ##############################################################################
 def generate_summary_document():
     """Génère un document combinant tous les résumés en un seul fichier texte sans redondance."""
-    seen_sections = set()  # Pour suivre les sections déjà ajoutées
     summary_data = []
 
     for entry in st.session_state.history_summary:
-        section_title = f"### {entry['section']}"
-        if section_title not in seen_sections:
-            seen_sections.add(section_title)
-            # Ajouter le titre de la section et son contenu
-            summary_data.append(f"{section_title}\n{entry['summary']}")
+        # Ajouter uniquement le contenu du résumé sans répéter le titre de la section
+        summary_data.append(entry['summary'])
     
     return "\n\n".join(summary_data)
 
@@ -434,17 +430,19 @@ def next_section():
         if initial_question:
             st.session_state.chat_history.append({"human": "", "AI": initial_question})
     else:
-        # Afficher un message et le bouton pour télécharger le résumé
-        st.success("Vous avez terminé toutes les sections ! Vous pouvez maintenant télécharger le résumé complet.")
-        summary_content = generate_summary_document()
-        
-        # Bouton pour télécharger le fichier
-        st.download_button(
-            label="📥 Télécharger le résumé en .txt",
-            data=summary_content,
-            file_name="resume_projet_iot.txt",
-            mime="text/plain"
-        )
+        # Ajouter le message de fin et le bouton de téléchargement dans l'historique
+        final_message = """
+        Félicitations 🎉 ! Vous avez terminé toutes les sections.  
+        Vous pouvez maintenant télécharger le résumé complet en appuyant sur le bouton ci-dessous.
+        """
+        st.session_state.chat_history.append({
+            'human': None,
+            'AI': final_message
+        })
+        st.session_state.chat_history.append({
+            'human': None,
+            'AI': '📥 [Cliquez ici pour télécharger le résumé](download_link)'
+        })  
 ##############################################################################
 #                     4. FONCTIONS DE GESTION DES RÉSUMÉS                   #
 ##############################################################################
