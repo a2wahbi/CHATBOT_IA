@@ -216,7 +216,7 @@ if len(st.session_state.chat_history) == 0:
     st.session_state.chat_history.append({
         'human': None,
         'AI': """
-        Bienvenue ! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+        Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
         Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
 
         Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
@@ -229,7 +229,7 @@ if len(st.session_state.chat_history) == 0:
 historique_container.subheader("📝 Conversation")
 
 for message in st.session_state.chat_history:
-    if message['human'] is None and message['AI'].startswith("Bienvenue !"):
+    if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
         # Affichage du message de bienvenue avec un style personnalisé
         historique_container.markdown(
             f"""
