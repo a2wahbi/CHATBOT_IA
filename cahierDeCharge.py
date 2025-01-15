@@ -418,6 +418,7 @@ def generate_summary_prompt(system_summary_prompt, previous_summaries, section_n
     ### Section actuelle : {section_name}
     {summary_prompt}
     """
+    
 
     
 ##############################################################################
@@ -460,7 +461,7 @@ def next_section():
             previous_summaries, 
             section_name, 
             summary_prompt
-        )
+        )        
         st.session_state.full_prompt = generate_full_prompt(
             st.session_state.current_section, 
             previous_summaries
@@ -470,20 +471,30 @@ def next_section():
         initial_question = initial_questions.get(section_name, "")
         if initial_question:
             st.session_state.chat_history.append({"human": "", "AI": initial_question})
+            # Ajouter le message de fin et le bouton de téléchargement dans l'historique
+        if st.session_state.current_section == "Génération de Cahier des Charges":
+
+            final_message = """
+            Félicitations 🎉 ! Vous avez terminé toutes les sections.  
+            Vous pouvez maintenant télécharger le résumé complet en appuyant sur le bouton ci-dessous.
+            """
+            st.session_state.chat_history.append({
+                'human': None,
+                'AI': final_message
+            })
+            st.session_state.chat_history.append({
+                'human': None,
+                'AI': '📥 [Cliquez ici pour télécharger le résumé](download_link)'
+            })  
     else:
-        # Ajouter le message de fin et le bouton de téléchargement dans l'historique
-        final_message = """
-        Félicitations 🎉 ! Vous avez terminé toutes les sections.  
-        Vous pouvez maintenant télécharger le résumé complet en appuyant sur le bouton ci-dessous.
-        """
-        st.session_state.chat_history.append({
+         st.session_state.chat_history.append({
             'human': None,
-            'AI': final_message
+            'AI': """
+            Merci pour votre confiance et d'avoir choisi TEKIN. Vous êtes déjà à la fin du processus.
+            Si vous avez d'autres questions, n'hésitez pas à les poser ! 😊
+            """
         })
-        st.session_state.chat_history.append({
-            'human': None,
-            'AI': '📥 [Cliquez ici pour télécharger le résumé](download_link)'
-        })  
+        
 ##############################################################################
 #                     4. FONCTIONS DE GESTION DES RÉSUMÉS                   #
 ##############################################################################

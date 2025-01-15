@@ -270,12 +270,29 @@ for message in st.session_state.chat_history:
             """, 
             unsafe_allow_html=True
         )
-
+    elif message['human'] is None and "Merci pour votre confiance" in message['AI']:
+        # Affichage du message de fin
+        historique_container.markdown(
+            f"""
+            <div style='
+                background-color: #EAF7FF; 
+                border: 1px solid #B3E5FC; 
+                border-radius: 10px; 
+                padding: 15px; 
+                margin-bottom: 20px;
+                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif;
+                color: #01579B;'>
+                {message['AI']}
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
     elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
         # Bouton de téléchargement
         download_content = generate_summary_document()
         historique_container.download_button(
-            label="📥 Télécharger le résumé en .txt",
+            label="📥 Télécharger le cahier de charge en format .txt",
             data=download_content,
             file_name="resume_projet_iot.txt",
             mime="text/plain"
