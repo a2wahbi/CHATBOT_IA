@@ -8,8 +8,3 @@ def get_historique_container():
 
 def get_input_question_container():
     return st.container(border=True , height = 300)
-
-# Initialisation des conteneurs
-title_container = get_title_container()
-historique_container = get_historique_container()
-input_question_container = get_input_question_container()

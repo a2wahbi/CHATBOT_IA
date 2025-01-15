@@ -11,6 +11,7 @@ import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init
+from layout import get_historique_container , get_title_container , get_input_question_container
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -161,9 +162,10 @@ def display_section_progress():
 #                               APP                                          #
 ##############################################################################  
 
-title_container = st.container(border=False )
-historique_container = st.container(border=True , height = 400)
-input_question_container = st.container(border=True , height = 300)
+# Initialisation des conteneurs
+title_container = get_title_container()
+historique_container = get_historique_container()
+input_question_container = get_input_question_container()
 
 title_container.title("🤖 TEKIN Assistant Chatbot !")
 title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
