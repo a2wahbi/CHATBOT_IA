@@ -8,12 +8,23 @@ from langchain.schema import SystemMessage
 #                             1. DÉFINITIONS DES DONNÉES                     #
 ##############################################################################
 initial_questions = {
-    "Introduction et Contexte": "Pouvez-vous me donner une vue d'ensemble de votre projet IoT ? Quels sont vos objectifs principaux ?",
-    "Description Fonctionnelle": "Quels sont les cas d'utilisation prévus pour ce système IoT ?",
-    "Spécifications Techniques": "Pouvez-vous décrire les composants matériels et logiciels envisagés pour ce projet ?",
-    "Spécifications des Données": "Quels types de données votre système IoT collectera-t-il, et comment seront-elles gérées ?",
-    "Contraintes et Normes": "Y a-t-il des contraintes spécifiques ou des normes réglementaires à respecter pour ce projet ?",
-    "Partie à Externaliser": "Quels éléments de ce projet souhaitez-vous externaliser, et pourquoi ?"
+    "Introduction et Contexte": """Pour bien démarrer, j’aimerais comprendre les grandes lignes de votre projet IoT. 
+Pouvez-vous me donner une vue d'ensemble ainsi que vos objectifs principaux ?""",
+
+    "Description Fonctionnelle": """Passons maintenant à la définition des fonctionnalités de votre système. 
+Quels sont les cas d'utilisation prévus, et comment les utilisateurs interagiront-ils avec le système ?""",
+
+    "Spécifications Techniques": """Afin d’assurer une bonne définition des aspects techniques, 
+pouvez-vous me décrire les composants matériels et logiciels que vous envisagez pour ce projet ?""",
+
+    "Spécifications des Données": """Les données jouent souvent un rôle clé dans les projets IoT. 
+Quels types de données votre système collectera-t-il, et comment prévoyez-vous de les traiter et de les stocker ?""",
+
+    "Contraintes et Normes": """Pour garantir que le projet respecte toutes les exigences, 
+y a-t-il des contraintes spécifiques ou des normes réglementaires que nous devrions prendre en compte ?""",
+
+    "Partie à Externaliser": """Pour optimiser le développement de votre projet, 
+quels éléments souhaitez-vous externaliser, et pour quelles raisons ?"""
 }
 system_summary_prompt = """
 Tu es un assistant spécialisé dans la rédaction de résumés techniques pour des projets IoT.
@@ -404,8 +415,6 @@ def next_section():
         initial_question = initial_questions.get(section_name, "")
         if initial_question:
             st.session_state.chat_history.append({"human": "", "AI": initial_question})
-
-        st.success(f"Vous êtes maintenant dans la section : {st.session_state.current_section}")
     else:
         st.warning("Vous êtes déjà à la dernière section.")
 ##############################################################################
