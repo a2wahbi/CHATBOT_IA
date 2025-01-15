@@ -291,7 +291,7 @@ for message in st.session_state.chat_history:
 model = load_model()
 
 # Widget audio
-audio_input_widget()
+#audio_input_widget()
 
 # Champ de saisie pour la question utilisateu
 if result["text"] :
