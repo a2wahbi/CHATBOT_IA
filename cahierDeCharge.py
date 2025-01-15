@@ -522,3 +522,4 @@ def init():
         MessagesPlaceholder(variable_name="chat_history"),
         HumanMessagePromptTemplate.from_template("{human_input}")
     ])
+

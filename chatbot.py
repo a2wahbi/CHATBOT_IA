@@ -212,12 +212,47 @@ conversation = ConversationChain(
     memory=memory
 )
 
+if len(st.session_state.chat_history) == 0:
+    st.session_state.chat_history.append({
+        'human': None,
+        'AI': """
+        Bienvenue ! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+        Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+
+        Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
+
+        Appuyez sur "➡️ Prochaine section" pour continuer.
+        """
+    })
+
 # Affichage de l'historique de la conversation
-historique_container.subheader("Conversation")
+historique_container.subheader("📝 Conversation")
+
 for message in st.session_state.chat_history:
-    if message['human'] is None and message['AI'].startswith("###"):
-                # Afficher les titres de section avec une couleur personnalisée
-                historique_container.markdown(
+    if message['human'] is None and message['AI'].startswith("Bienvenue !"):
+        # Affichage du message de bienvenue avec un style personnalisé
+        historique_container.markdown(
+            f"""
+            <div style='
+                background-color: #F9F9F9; 
+                border: 1px solid #E5E5E5; 
+                border-radius: 10px; 
+                padding: 15px; 
+                margin-bottom: 20px; 
+                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif; 
+                font-size: 16px; 
+                line-height: 1.6; 
+                color: #333;'>
+                <strong style='font-size: 18px; color: #2A7AE4;'>Bienvenue 👋 !</strong><br>
+                {message['AI']}
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    elif message['human'] is None and message['AI'].startswith("###"):
+        # Affichage des titres de section avec un style personnalisé
+        historique_container.markdown(
             f"""
             <h3 style='
                 color: #FF5733; 
@@ -229,15 +264,15 @@ for message in st.session_state.chat_history:
                 border-bottom: 2px solid #FF5733;
                 padding-bottom: 5px;
                 text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-            '>{message['AI'][4:]}</h3>
+            '>{message['AI'][4:].strip()}</h3>
             """, 
             unsafe_allow_html=True
         )
-    else: 
+    else:
         with st.spinner("En écriture..."):
-            if message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
+            if message["human"] and message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
                 historique_container.chat_message("user").write(message["human"])
-            if message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
+            if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
                 historique_container.chat_message("assistant").write(message["AI"])
 
 # Charger le modèle Whisper
