@@ -9,6 +9,9 @@ import json
 import whisper
 import tempfile
 from buttons import display_interactive_buttons
+from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
+from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
+from layout import get_historique_container , get_title_container , get_input_question_container
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -16,6 +19,7 @@ result = {
     "language": None  # Langue détectée, initialement définie comme None
 }
 model = ""
+
 ##############################################################################
 #                               Styles                                       #
 ##############################################################################
@@ -52,19 +56,18 @@ def audio_input_widget ():
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
 
-##############################################################################
-#                               organisation                                 #
-##############################################################################
-title_container = st.container(border=False )
-historique_container = st.container(border=True , height = 400)
-input_question_container = st.container(border=True , height = 300)
-
-
 ########################################################################################
 #                               Fonction Utiles                                         #
 ########################################################################################
 def clear_text():
-            try:
+        """Génère une réponse uniquement si l'entrée utilisateur n'est pas vide."""
+        user_input = st.session_state.get("text", "").strip()
+    
+        # Ignorer si l'entrée utilisateur est vide
+        if not user_input:
+            historique_container.warning("Veuillez entrer un texte avant d'envoyer.", icon="⚠️")
+            return
+        try:
                 # Transform chat history to LangChain-compatible format
                 formatted_history = []
                 for message in st.session_state.chat_history:
@@ -86,10 +89,10 @@ def clear_text():
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
-            except Exception as e:
+        except Exception as e:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
                             #Clean the user input  
-            st.session_state["text"] = ""  
+        st.session_state["text"] = ""  
 
 def clear_text_with_default(default_input="Je ne sais pas"):
     """Fonction similaire à clear_text, mais prend un texte par défaut comme entrée."""
@@ -120,7 +123,6 @@ def clear_text_with_default(default_input="Je ne sais pas"):
 
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
-
 def save_history_to_file(history, filename = HISTORY_FILE):
     """Enregistre l'historique de la conversation dans un fichier JSON. """
     with open(filename, "w") as f:
@@ -138,124 +140,40 @@ def load_history_from_file(filename = HISTORY_FILE):
         with open(filename, "r") as f :
             return json.load(f)
     return []
-
-def memory_status(history, memory_length):
-    current_length = len(history)
-    max_messages = 200 #limite maximale des messages 
-    # Normaliser la progression entre 0 et 1 en fonction du maximum défini
-    progress_value = min(current_length / max_messages, 1.0)
-
-    messages_until_save = memory_length - (current_length % memory_length)
-
-    st.sidebar.metric(
-        label="Messages en mémoire",
-        value=f"{current_length % memory_length}/{memory_length}",
-        delta=f"Encore {messages_until_save} avant la sauvegarde"
-    )
-
-    st.sidebar.progress(progress_value, f"{current_length} messages sur {max_messages}")
-
     
-#Confiuration de la SideBar
 def setup_sidebar():
-    """Configure la barre latérale Streamlit et retourne les options sélectionnées."""
+    """Configure la barre latérale avec le logo, la progression des sections, et le bouton de réinitialisation."""
     st.sidebar.image('TEKIN logo 2019 couleur.png', use_container_width=True)
-    st.sidebar.write("## Options")
-    
-    # Sélection du modèle
-    model_choice = st.sidebar.selectbox(
-        "Choisissez un modèle :",
-        ["llama3-70b-8192", "llama3-8b-8192"]
-    )
-    
-    # Slider pour la longueur de la mémoire
-    memory_length = st.sidebar.slider(
-        "Longueur de mémoire conversationnelle :",
-        min_value=3, max_value=20, value=10, step=2
-    )
-
-    #slider pour le nombre de tokens maximum
-    max_tokens = st.sidebar.slider(
-        "Nombre de tokens utiliser par l'assistant",
-        min_value=50 , max_value= 8000 , value = 2000 , step = 100 
-    )
-    
+    display_section_progress()
     # Bouton pour réinitialiser la conversation
     if st.sidebar.button("Réinitialiser la conversation"):
         save_history_to_file([])  # Réinitialiser le fichier
         st.session_state.chat_history = []
         st.sidebar.success("Conversation réinitialisée.")
-    
-    # Affichage de l'état de la mémoire
-    memory_status(st.session_state.chat_history, memory_length)
+def display_section_progress():
+    """Affiche la progression des sections dans la barre latérale."""
+    st.sidebar.write("## Progression")
+    sections = list(section_prompts.keys())
+    current_index = sections.index(st.session_state.current_section)
+    total_sections = len(sections)
+    progress_value = (current_index + 1) / total_sections
 
-
-    st.sidebar.metric(
-    label="Tokens sélectionnés",
-    value=f"{max_tokens} tokens",
-    )
-
-    
-    # Retourner les choix effectués
-    return model_choice, memory_length , max_tokens
-
-
-##############################################################################
-#                               Prompting                                    #
-##############################################################################
-
-system_prompt = """
-Tu es un assistant intelligent de l'entreprise TEKIN, spécialisée dans les projets IoT. Ta mission est d'interagir avec les clients pour :
-
-1. **Comprendre les objectifs principaux de leur projet IoT** :
-   - Identifie leurs attentes.
-   - Détermine les problèmes qu'ils souhaitent résoudre.
-
-2. **Définir les composants nécessaires** :
-   - Capteurs, actionneurs, connectivité, et protocoles.
-
-3. **Collecter les informations suivantes** :  
-   - **Exigences fonctionnelles** :  
-     - Fonctionnalités principales, collecte et traitement des données, communication, interface utilisateur.  
-   - **Exigences non-fonctionnelles** :  
-     - Performance, fiabilité, sécurité, consommation énergétique, durée de vie.  
-   - **Exigences techniques** :  
-     - Capteurs, spécifications matérielles, connectivité, portée, compatibilité, résistance environnementale.  
-   - **Exigences réglementaires** :  
-     - Normes, certifications, RGPD, cybersécurité.  
-   - **Informations personnelles clés** :  
-     - Numéro de téléphone, adresse e-mail.  
-
-### Directives pour interagir avec le client :  
-- Pose des **questions simples et précises**, basées sur les réponses précédentes.  
-- Limite-toi à une **seule question à la fois** pour garantir la clarté.  
-- Clarifie ou reformule les réponses ambiguës.  
-
-### À la fin de la conversation :  
-- Résume toutes les informations recueillies de manière structurée.  
-- Prépare un **cahier des charges professionnel**, prêt à être transmis à l'équipe TEKIN.
-
-**Ton attendu** :  
-Professionnel, amical, et rassurant.
-
-### Exemples de questions à poser :  
-- Quels sont les principaux objectifs de votre projet ?  
-- Quels types de capteurs envisagez-vous d'utiliser ?  
-- Avez-vous des exigences spécifiques en matière de sécurité ?  
-
-**Note** : Ce document est confidentiel et appartient à TEKIN. Ne pas reproduire sans autorisation.
-"""
-
-# Create the Chat Prompt Template
-prompt_template = ChatPromptTemplate.from_messages([
-    SystemMessage(content=system_prompt),
-    MessagesPlaceholder(variable_name="chat_history"),
-    HumanMessagePromptTemplate.from_template("{human_input}")
-])
+    st.sidebar.progress(progress_value, text=f"Section {current_index + 1} sur {total_sections}")
+    st.sidebar.write("### Progression des Sections")
+    for idx, section in enumerate(sections):
+        icon = "✅" if idx < current_index else "🚀" if idx == current_index else "⏳"
+        color = "green" if idx < current_index else "red" if idx == current_index else "gray"
+        st.sidebar.markdown(f"{icon} <span style='color: {color}; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
 
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
+
+# Initialisation des conteneurs
+title_container = get_title_container()
+historique_container = get_historique_container()
+input_question_container = get_input_question_container()
+
 title_container.title("🤖 TEKIN Assistant Chatbot !")
 title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
 
@@ -264,7 +182,26 @@ title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet 
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = load_history_from_file()
 
-model_choice , memory_length , max_tokens = setup_sidebar()
+if 'current_section' not in st.session_state:
+    st.session_state.current_section = "Accueil"
+
+if 'full_prompt' not in st.session_state:
+    st.session_state.full_prompt = generate_full_prompt(
+        st.session_state.current_section, 
+        ""
+    )
+
+if 'history_summary' not in st.session_state:
+    st.session_state.history_summary = [] 
+
+init()
+# Obtenir le prompt template mis à jour
+prompt_template = get_updated_prompt_template()
+
+model_choice = "llama3-70b-8192"
+memory_length = 20
+max_tokens = 8192
+
 # Initialisation de la mémoire conversationnelle
 memory = ConversationBufferWindowMemory(k=memory_length)
 
@@ -275,23 +212,112 @@ groq_chat = ChatGroq(
     max_tokens = max_tokens
 )
 
+# Stocker groq_chat dans st.session_state
+st.session_state.groq_chat = groq_chat
+
 # Configuration de la chaîne de conversation
 conversation = ConversationChain(
     llm=groq_chat,
     memory=memory
 )
 
+if len(st.session_state.chat_history) == 0:
+    st.session_state.chat_history.append({
+        'human': None,
+        'AI': """
+        Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+        Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+
+        Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
+
+        Appuyez sur "➡️ Prochaine section" pour continuer.
+        """
+    })
+
 # Affichage de l'historique de la conversation
-historique_container.subheader("Historique de la conversation")
+historique_container.subheader("📝 Conversation")
+
 for message in st.session_state.chat_history:
-    with st.spinner("En écriture..."):
-        historique_container.chat_message("user").write(message['human'])
-        historique_container.chat_message("assistant").write(message['AI'])
+    if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
+        # Affichage du message de bienvenue avec un style personnalisé
+        historique_container.markdown(
+            f"""
+            <div style='
+                background-color: #F9F9F9; 
+                border: 1px solid #E5E5E5; 
+                border-radius: 10px; 
+                padding: 15px; 
+                margin-bottom: 20px; 
+                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif; 
+                font-size: 16px; 
+                line-height: 1.6; 
+                color: #333;'>
+                <strong style='font-size: 18px; color: #2A7AE4;'>Bienvenue 👋 !</strong><br>
+                {message['AI']}
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    elif message['human'] is None and message['AI'].startswith("###"):
+        # Affichage des titres de section avec un style personnalisé
+        historique_container.markdown(
+            f"""
+            <h3 style='
+                color: #FF5733; 
+                font-size: 24px; 
+                font-weight: bold; 
+                text-align: center; 
+                margin-top: 20px; 
+                margin-bottom: 10px; 
+                border-bottom: 2px solid #FF5733;
+                padding-bottom: 5px;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            '>{message['AI'][4:].strip()}</h3>
+            """, 
+            unsafe_allow_html=True
+        )
+    elif message['human'] is None and "Merci pour votre confiance" in message['AI']:
+        # Affichage du message de fin
+        historique_container.markdown(
+            f"""
+            <div style='
+                background-color: #EAF7FF; 
+                border: 1px solid #B3E5FC; 
+                border-radius: 10px; 
+                padding: 15px; 
+                margin-bottom: 20px;
+                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif;
+                color: #01579B;'>
+                {message['AI']}
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
+        # Bouton de téléchargement
+        download_content = generate_summary_document()
+        historique_container.download_button(
+            label="📥 Télécharger le cahier de charge en format .txt",
+            data=download_content,
+            file_name="resume_projet_iot.txt",
+            mime="text/plain"
+        )
+    else:
+        with st.spinner("En écriture..."):
+            if message["human"] and message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
+                historique_container.chat_message("user").write(message["human"])
+            if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
+                historique_container.chat_message("assistant").write(message["AI"])
 
+# Charger le modèle Whisper
 model = load_model()
-audio_input_widget()
-# Champ de saisie pour la question utilisateur
 
+# Widget audio
+#audio_input_widget()
+
+# Champ de saisie pour la question utilisateu
 if result["text"] :
     user_question = input_question_container.text_area(
     "Posez votre question ici 👇",
@@ -308,3 +334,5 @@ else:
 
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
+setup_sidebar()
+display_summary_history()
