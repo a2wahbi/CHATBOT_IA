@@ -7,6 +7,23 @@ from langchain.schema import SystemMessage
 ##############################################################################
 #                             1. DÉFINITIONS DES DONNÉES                     #
 ##############################################################################
+system_summary_prompt = """
+Tu es un assistant spécialisé dans la rédaction de résumés techniques pour des projets IoT. 
+Ton rôle est de synthétiser les informations collectées au cours des conversations et de rédiger des résumés clairs, précis et structurés.
+
+### Directives pour générer le résumé :
+1. Respecte strictement la structure fournie pour chaque section.
+2. Utilise un langage professionnel et formel.
+3. Ne pose aucune question ni ne fais de suppositions. Limite-toi aux informations disponibles.
+4. Si certaines informations manquent, indique clairement "[Information manquante]".
+5. Évite toute redondance ou digression.
+
+### Structure générale attendue pour chaque résumé :
+- **Titre de la section** : [Nom de la section]
+- **Résumé structuré** : Remplis chaque champ comme indiqué dans le format fourni.
+
+Assure-toi que chaque résumé est adapté à l'objectif du projet IoT et qu'il peut être directement intégré dans un cahier des charges formel.
+"""
 summary_sections = {
     "Introduction et Contexte": "Voici les éléments nécessaires à inclure :\n"
         "- Objectifs du document : Quels sont les buts principaux de ce cahier des charges ?\n"
@@ -267,28 +284,20 @@ def generate_previous_summaries(completed_sections):
     return "\n".join(summaries)
 
 
-def generate_summary_prompt(system_prompt, previous_summaries, section_name, summary_prompt):
+def generate_summary_prompt(system_summary_prompt, previous_summaries, section_name, summary_prompt):
     """
-    Combine le system prompt, les résumés précédents, et le prompt de résumé de la section actuelle.
-
-    Args:
-        system_prompt (str): Le prompt global décrivant le rôle de l'IA.
-        previous_summaries (str): Les résumés des sections précédentes.
-        section_name (str): Le nom de la section actuelle.
-        summary_prompt (str): Le prompt spécifique à la section actuelle.
-
-    Returns:
-        str: Le full prompt combiné.
+    Combine le system_summary_prompt, les résumés précédents, 
+    et le prompt spécifique à la section actuelle pour créer un prompt complet.
     """
     return f"""
-    {system_prompt}
-
+    {system_summary_prompt}
+    
     ### Résumé des sections précédentes :
     {previous_summaries}
-
+    
     ### Section actuelle : {section_name}
     {summary_prompt}
-"""
+    """
 
     
 ##############################################################################
@@ -322,7 +331,7 @@ def next_section():
         st.code(summary_prompt)
         # Combiner les prompts pour le résumé
         full_summary_prompt = generate_summary_prompt(
-            system_prompt, 
+            system_summary_prompt, 
             previous_summaries, 
             section_name, 
             summary_prompt
@@ -365,10 +374,18 @@ def generate_summary():
             for idx, msg in enumerate(st.session_state.chat_history)
         ]
 
+        # Ajouter une consigne explicite pour forcer la structure
+        section_prompt = summary_sections.get(st.session_state.current_section, "")
+        structured_prompt = f"""
+        Résume la section '{st.session_state.current_section}' en respectant strictement la structure suivante :
+        
+        {section_prompt}
+        """
+
         # Construire le prompt
         summary_prompt = prompt_summary.format_prompt(
             chat_history=formatted_history,
-            human_input=f"Résume cette conversation pour la section '{st.session_state.current_section}'."
+            human_input=structured_prompt
         ).to_messages()
 
         # Appeler le modèle pour générer le résumé
