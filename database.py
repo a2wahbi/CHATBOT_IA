@@ -5,8 +5,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import streamlit as st
 import gspread
+
 def connect_to_google_sheets():
-    """Connecte à Google Sheets en fonction de l'environnement."""
+    """Connecte à Google Sheets et retourne le classeur complet."""
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
@@ -26,25 +27,42 @@ def connect_to_google_sheets():
         # Autoriser les credentials
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        return client.open("Conversations IoT").sheet1
+        return client.open("Conversations IoT")  # Retourne le classeur entier
     except Exception as e:
         raise RuntimeError(f"Erreur de connexion à Google Sheets : {e}")
+    
 
-def save_to_google_sheets(user_message, assistant_response, section_name):
-    """Enregistre une conversation dans Google Sheets avec la date/heure."""
+def save_to_google_sheets(user_message, assistant_response, section_name , sheet_name):
+    """Enregistre une conversation dans Google Sheets avec la date/heure dans une feuille spécifique"""
     try:
         # Obtenir la date et l'heure actuelles
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        spreadsheet = connect_to_google_sheets()
         
-        # Connexion à Google Sheets
-        sheet = connect_to_google_sheets()
-        
-        # Ajouter une nouvelle ligne avec les données
-        sheet.append_row([timestamp, user_message, assistant_response, section_name])
-        print("Données enregistrées avec succès.")
-    except Exception as e:
-        print(f"Erreur lors de l'enregistrement des données : {e}")
+        # Sélectionner la feuille par son nom
+        try:
+            sheet = spreadsheet.worksheet(sheet_name)
+        except gspread.exceptions.WorksheetNotFound:
+            st.error(f"La feuille {sheet_name} n'existe pas.")
+            return
 
+        # Ajouter une nouvelle ligne
+        sheet.append_row([timestamp, user_message, assistant_response, section_name])
+
+        st.write("Données enregistrées avec succès.")
+    except Exception as e:
+        st.write(f"Erreur lors de l'enregistrement des données : {e}")
+
+def create_new_sheet(sheet_name):
+    """Crée une nouvelle feuille dans le classeur Google Sheets."""
+    try:
+        spreadsheet = connect_to_google_sheets()  # Retourne le classeur Google Sheets
+        # Vérifier si la feuille existe déjà
+        if sheet_name not in [sheet.title for sheet in spreadsheet.worksheets()]:
+            spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="10")
+        return spreadsheet.worksheet(sheet_name)  # Retourner la nouvelle feuille
+    except Exception as e:
+        raise RuntimeError(f"Erreur lors de la création de la nouvelle feuille : {e}")
 def test_google_sheets():
     try:
         sheet = connect_to_google_sheets()

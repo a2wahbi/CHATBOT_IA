@@ -13,8 +13,9 @@ from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from layout import get_historique_container , get_title_container , get_input_question_container
-from database import save_to_google_sheets
+from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet  
 from init import app_init
+
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
     "segments": [],  # Liste pour les détails au niveau des segments
@@ -53,6 +54,21 @@ def audio_input_widget ():
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
 
+def start_new_discussion():
+    """Démarre une nouvelle discussion en créant une nouvelle feuille."""
+    spreadsheet = connect_to_google_sheets()  # Récupère le classeur
+    existing_sheets = [sheet.title for sheet in spreadsheet.worksheets()]  # Liste des feuilles existantes
+    discussion_number = len(existing_sheets) + 1
+    new_sheet_name = f"Discussion {discussion_number}"
+
+    # Créer une nouvelle feuille
+    create_new_sheet(new_sheet_name)
+
+    # Réinitialiser les données dans l'application
+    st.session_state.chat_history = []
+    st.session_state.current_sheet = new_sheet_name
+    st.success(f"Nouvelle discussion créée : {new_sheet_name}")
+
 ########################################################################################
 #                               Fonction Utiles                                         #
 ########################################################################################
@@ -82,8 +98,14 @@ def clear_text():
                 # Add the user input and AI response to the session's chat history
                 st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
                 
-                # ajoute une nouvelle ligne dans la feuille de google sheets 
-                save_to_google_sheets(st.session_state["text"], response.content, st.session_state.current_section)
+                        # Enregistrement
+                save_to_google_sheets(
+                    st.session_state["text"],
+                    response.content,
+                    st.session_state.current_section,
+                    st.session_state.current_sheet
+                )
+                
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
@@ -183,6 +205,10 @@ if 'full_prompt' not in st.session_state:
         st.session_state.current_section, 
         ""
     )
+
+if "current_sheet" not in st.session_state:
+    st.session_state.current_sheet = "Discussion 1"  # Feuille par défaut
+    create_new_sheet(st.session_state.current_sheet)
 
 if 'history_summary' not in st.session_state:
     st.session_state.history_summary = [] 
@@ -285,7 +311,7 @@ for message in st.session_state.chat_history:
                 historique_container.chat_message("assistant").write(message["AI"])
 
 # Widget audio
-audio_input_widget()
+#audio_input_widget()
 
 # Champ de saisie pour la question utilisateu
 if result["text"] :
@@ -306,3 +332,5 @@ else:
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
 setup_sidebar()
 display_summary_history()
+# Ajout du bouton dans la barre latérale
+st.sidebar.button("Nouvelle discussion" , on_click= start_new_discussion)
