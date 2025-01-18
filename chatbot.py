@@ -236,6 +236,10 @@ if len(st.session_state.chat_history) == 0:
 # Affichage de l'historique de la conversation
 historique_container.subheader("📝 Conversation")
 
+# Bouton pour démarrer une nouvelle discussion
+if historique_container.button("🆕 Nouvelle discussion"):
+    start_new_discussion()
+
 for message in st.session_state.chat_history:
     if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
         # Affichage du message de bienvenue avec un style personnalisé
@@ -332,5 +336,3 @@ else:
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
 setup_sidebar()
 display_summary_history()
-# Ajout du bouton dans la barre latérale
-st.sidebar.button("Nouvelle discussion" , on_click= start_new_discussion)
