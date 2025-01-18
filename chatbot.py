@@ -13,8 +13,7 @@ from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt 
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from layout import get_historique_container , get_title_container , get_input_question_container
 from database import save_to_google_sheets
-from dotenv import load_dotenv
-
+from init import app_init
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
     "segments": [],  # Liste pour les détails au niveau des segments
@@ -173,15 +172,9 @@ def display_section_progress():
 #                               APP                                          #
 ##############################################################################  
 
-# Initialisation des conteneurs
-title_container = get_title_container()
-historique_container = get_historique_container()
-input_question_container = get_input_question_container()
+# Initialisation 
+title_container , historique_container , input_question_container , model_choice, memory_length, max_tokens , memory  , groq_chat , conversation = app_init()
 
-title_container.title("🤖 TEKIN Assistant Chatbot !")
-title_container.write("Bonjour ! Je suis ton assistant pour définir ton projet IOT et créer un premier cahier des charges.")
-
-load_dotenv() 
 # Initialisation de l'historique de conversation dans la session
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = load_history_from_file()
@@ -202,28 +195,8 @@ init()
 # Obtenir le prompt template mis à jour
 prompt_template = get_updated_prompt_template()
 
-model_choice = "llama3-70b-8192"
-memory_length = 20
-max_tokens = 8192
-
-# Initialisation de la mémoire conversationnelle
-memory = ConversationBufferWindowMemory(k=memory_length)
-
-# Initialisation du chatbot Groq
-groq_chat = ChatGroq(
-    groq_api_key="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",
-    model_name=model_choice,
-    max_tokens = max_tokens
-)
-
 # Stocker groq_chat dans st.session_state
 st.session_state.groq_chat = groq_chat
-
-# Configuration de la chaîne de conversation
-conversation = ConversationChain(
-    llm=groq_chat,
-    memory=memory
-)
 
 if len(st.session_state.chat_history) == 0:
     st.session_state.chat_history.append({
