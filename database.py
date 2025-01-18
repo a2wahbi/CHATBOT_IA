@@ -56,11 +56,12 @@ def save_to_google_sheets(user_message, assistant_response, section_name , sheet
 def create_new_sheet(sheet_name):
     """Crée une nouvelle feuille dans le classeur Google Sheets."""
     try:
-        spreadsheet = connect_to_google_sheets()  # Retourne le classeur Google Sheets
-        # Vérifier si la feuille existe déjà
+        spreadsheet = connect_to_google_sheets()
         if sheet_name not in [sheet.title for sheet in spreadsheet.worksheets()]:
-            spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="10")
-        return spreadsheet.worksheet(sheet_name)  # Retourner la nouvelle feuille
+            new_sheet = spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="10")
+            # Ajouter les en-têtes
+            new_sheet.append_row(["Timestamp", "User Message", "Assistant Response", "Section Name"])
+        return spreadsheet.worksheet(sheet_name)
     except Exception as e:
         raise RuntimeError(f"Erreur lors de la création de la nouvelle feuille : {e}")
 def test_google_sheets():
