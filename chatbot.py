@@ -19,7 +19,7 @@ result = {
     "segments": [],  # Liste pour les détails au niveau des segments
     "language": None  # Langue détectée, initialement définie comme None
 }
-model = ""
+
 
 ##############################################################################
 #                               Styles                                       #
@@ -32,11 +32,6 @@ if os.path.exists("style.css"):
 ##############################################################################
 #                               speech to text                                #
 ##############################################################################
-# Charger le modèle Whisper avec mise en cache
-@st.cache_resource
-def load_model():
-    return whisper.load_model("small" , device = "cpu") # Modèles possibles : tiny, base, small, medium, large
-
 def audio_input_widget (): 
     # Enregistrement via st.audio_input
     audio_data = input_question_container.audio_input("speech text widget" , label_visibility= "collapsed" )
@@ -173,7 +168,7 @@ def display_section_progress():
 ##############################################################################  
 
 # Initialisation 
-title_container , historique_container , input_question_container , model_choice, memory_length, max_tokens , memory  , groq_chat , conversation = app_init()
+title_container , historique_container , input_question_container , model_choice, memory_length, max_tokens , memory  , groq_chat , conversation , model  = app_init()
 
 # Initialisation de l'historique de conversation dans la session
 if 'chat_history' not in st.session_state:
@@ -288,11 +283,8 @@ for message in st.session_state.chat_history:
             if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
                 historique_container.chat_message("assistant").write(message["AI"])
 
-# Charger le modèle Whisper
-model = load_model()
-
 # Widget audio
-#audio_input_widget()
+audio_input_widget()
 
 # Champ de saisie pour la question utilisateu
 if result["text"] :
