@@ -5,12 +5,13 @@ from langchain_groq import ChatGroq
 from langchain.chains import ConversationChain
 import streamlit as st
 import whisper
+from streamlit_extras.bottom_container import bottom
 # Fonction pour initialiser tous les conteneurs
 def init_container():
     title_container = get_title_container()
     historique_container = get_historique_container()
-    input_question_container = get_input_question_container()
-
+    with bottom():
+        input_question_container = get_input_question_container()
     return title_container, historique_container, input_question_container
 
 # Afficher les titres
