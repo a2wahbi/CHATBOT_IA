@@ -67,5 +67,6 @@ def app_init():
     memory = init_configure_memory_buffer(memory_length)
     groq_chat = init_groq_chat(model_choice , max_tokens)
     conversation = init_conversation_chain(groq_chat , memory)
-    model = load_model_whisper()
+    model = 0
+    #load_model_whisper()
     return title_container , historique_container , input_question_container , model_choice, memory_length , max_tokens , memory , groq_chat , conversation , model 

@@ -186,6 +186,116 @@ def display_section_progress():
         color = "green" if idx < current_index else "red" if idx == current_index else "gray"
         st.sidebar.markdown(f"{icon} <span style='color: {color}; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
 
+
+##############################################################################
+#                               Display functions                            #
+##############################################################################  
+def display_historique(historique_container):
+        # Affichage de l'historique de la conversation
+    historique_container.subheader("📝 Conversation")
+
+    # Bouton pour démarrer une nouvelle discussion
+    if historique_container.button("🆕 Nouvelle discussion"):
+        start_new_discussion()
+
+    for message in st.session_state.chat_history:
+        if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
+            # Affichage du message de bienvenue avec un style personnalisé
+            historique_container.markdown(
+                f"""
+                <div style='
+                    background-color: #F9F9F9; 
+                    border: 1px solid #E5E5E5; 
+                    border-radius: 10px; 
+                    padding: 15px; 
+                    margin-bottom: 20px; 
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                    font-family: Arial, sans-serif; 
+                    font-size: 16px; 
+                    line-height: 1.6; 
+                    color: #333;'>
+                    <strong style='font-size: 18px; color: #2A7AE4;'>Bienvenue 👋 !</strong><br>
+                    {message['AI']}
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+        elif message['human'] is None and message['AI'].startswith("###"):
+            # Affichage des titres de section avec un style personnalisé
+            historique_container.markdown(
+                f"""
+                <h3 style='
+                    color: #FF5733; 
+                    font-size: 24px; 
+                    font-weight: bold; 
+                    text-align: center; 
+                    margin-top: 20px; 
+                    margin-bottom: 10px; 
+                    border-bottom: 2px solid #FF5733;
+                    padding-bottom: 5px;
+                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                '>{message['AI'][4:].strip()}</h3>
+                """, 
+                unsafe_allow_html=True
+            )
+        elif message['human'] is None and "Merci pour votre confiance" in message['AI']:
+            # Affichage du message de fin
+            historique_container.markdown(
+                f"""
+                <div style='
+                    background-color: #EAF7FF; 
+                    border: 1px solid #B3E5FC; 
+                    border-radius: 10px; 
+                    padding: 15px; 
+                    margin-bottom: 20px;
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                    font-family: Arial, sans-serif;
+                    color: #01579B;'>
+                    {message['AI']}
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+        elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
+            # Bouton de téléchargement
+            download_content = generate_summary_document()
+            historique_container.download_button(
+                label="📥 Télécharger le cahier de charge en format .txt",
+                data=download_content,
+                file_name="resume_projet_iot.txt",
+                mime="text/plain"
+            )
+        else:
+            with st.spinner("En écriture..."):
+                if message["human"] and message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
+                    historique_container.chat_message("user").write(message["human"])
+                if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
+                    historique_container.chat_message("assistant").write(message["AI"])
+
+# Afficher le message d'introduction avec un bouton "Nouvelle discussion"
+def display_intro_message(historique_container):
+    """
+    Affiche le texte introductif et le bouton "Nouvelle discussion".
+    """
+    # Texte introductif
+    historique_container.markdown(
+        """
+        <div style='text-align: center;'>
+            <h2>Bienvenue 👋!</h2>
+            <p>Ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.</p>
+            <p>Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.</p>
+            <p><strong>Pour commencer, cliquez sur le bouton <em>"Nouvelle discussion"</em> ci-dessous.</strong></p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Bouton pour démarrer une nouvelle discussion
+    if historique_container.button("Nouvelle discussion", key="start_new_discussion_button"):
+        start_new_discussion()
+
+
+
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
@@ -220,99 +330,14 @@ prompt_template = get_updated_prompt_template()
 # Stocker groq_chat dans st.session_state
 st.session_state.groq_chat = groq_chat
 
+# Appel de la fonction d'affichage du message d'introduction
 if len(st.session_state.chat_history) == 0:
-    st.session_state.chat_history.append({
-        'human': None,
-        'AI': """
-        Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
-        Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+    display_intro_message(historique_container)
+else:
+    # Si une discussion est déjà en cours, afficher l'historique
+    display_historique(historique_container)
 
-        Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
 
-        Appuyez sur "➡️ Prochaine section" pour continuer.
-        """
-    })
-
-# Affichage de l'historique de la conversation
-historique_container.subheader("📝 Conversation")
-
-# Bouton pour démarrer une nouvelle discussion
-if historique_container.button("🆕 Nouvelle discussion"):
-    start_new_discussion()
-
-for message in st.session_state.chat_history:
-    if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
-        # Affichage du message de bienvenue avec un style personnalisé
-        historique_container.markdown(
-            f"""
-            <div style='
-                background-color: #F9F9F9; 
-                border: 1px solid #E5E5E5; 
-                border-radius: 10px; 
-                padding: 15px; 
-                margin-bottom: 20px; 
-                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-                font-family: Arial, sans-serif; 
-                font-size: 16px; 
-                line-height: 1.6; 
-                color: #333;'>
-                <strong style='font-size: 18px; color: #2A7AE4;'>Bienvenue 👋 !</strong><br>
-                {message['AI']}
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-    elif message['human'] is None and message['AI'].startswith("###"):
-        # Affichage des titres de section avec un style personnalisé
-        historique_container.markdown(
-            f"""
-            <h3 style='
-                color: #FF5733; 
-                font-size: 24px; 
-                font-weight: bold; 
-                text-align: center; 
-                margin-top: 20px; 
-                margin-bottom: 10px; 
-                border-bottom: 2px solid #FF5733;
-                padding-bottom: 5px;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-            '>{message['AI'][4:].strip()}</h3>
-            """, 
-            unsafe_allow_html=True
-        )
-    elif message['human'] is None and "Merci pour votre confiance" in message['AI']:
-        # Affichage du message de fin
-        historique_container.markdown(
-            f"""
-            <div style='
-                background-color: #EAF7FF; 
-                border: 1px solid #B3E5FC; 
-                border-radius: 10px; 
-                padding: 15px; 
-                margin-bottom: 20px;
-                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-                font-family: Arial, sans-serif;
-                color: #01579B;'>
-                {message['AI']}
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-    elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
-        # Bouton de téléchargement
-        download_content = generate_summary_document()
-        historique_container.download_button(
-            label="📥 Télécharger le cahier de charge en format .txt",
-            data=download_content,
-            file_name="resume_projet_iot.txt",
-            mime="text/plain"
-        )
-    else:
-        with st.spinner("En écriture..."):
-            if message["human"] and message["human"].strip():  # Vérifie que le message utilisateur n'est pas vide
-                historique_container.chat_message("user").write(message["human"])
-            if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
-                historique_container.chat_message("assistant").write(message["AI"])
 
 # Widget audio
 #audio_input_widget()
