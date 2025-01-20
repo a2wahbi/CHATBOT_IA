@@ -54,7 +54,9 @@ def save_to_google_sheets(user_message, assistant_response, section_name):
 
         # Ajouter une nouvelle ligne
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, user_message, assistant_response, section_name])
+        data_to_write = [None, None, None, timestamp, user_message, assistant_response, section_name]
+        sheet.append_row(data_to_write)
+
     except Exception as e:
         st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
