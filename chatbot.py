@@ -268,28 +268,49 @@ def display_historique(historique_container):
                 if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
                     historique_container.chat_message("assistant").write(message["AI"])
 
-
 def display_intro_message(Historique_container):
     """
     Affiche un message de bienvenue stylisé avec un bouton déclenchant un callback Python.
     """
-    # Texte stylisé avec Markdown
+    # Texte stylisé avec Markdown et CSS pour centrer les titres
     Historique_container.markdown(
         """
-        ## 👋 Bienvenue chez **TEKIN** !
-        
-        ### 🌟 Créez votre cahier des charges IoT facilement !
-        
-        Nous sommes ravis de vous accompagner dans votre projet. Ce processus est **simple et structuré** en plusieurs sections, 
-        chacune dédiée à un aspect spécifique de votre projet IoT.
-
-        👉 **Comment ça marche ?**
-        - Je vous poserai des questions claires pour collecter les informations essentielles.
-        - Une fois une section terminée, nous passerons automatiquement à la suivante.
-
-        **🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !**
+<style>
+.title {
+    text-align: center;
+    color: darkorange;
+    font-size: 32px;
+    font-weight: bold;
+}
+.subtitle {
+    text-align: center;
+    font-size: 20px;
+    color: steelblue;
+}
+.content {
+    font-size: 16px;
+    color: white; /* Correction pour une meilleure lisibilité sur fond clair */
+    line-height: 1.8;
+    text-align: justify;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour le style */
+}
+</style>
+<h3 class="title">👋 Bienvenue chez TEKIN !</h3>
+<h5 class="subtitle">🌟 Créez votre cahier des charges IoT facilement !</h5>
+<div class="content">
+    Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
+    chacune dédiée à un aspect spécifique de votre projet IoT.
+    <br><br>
+    <strong>👉 Comment ça marche ?</strong><br>
+    - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
+    - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
+    <br><br>
+    <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
+</div>
         """,
-        unsafe_allow_html=False,
+        unsafe_allow_html=True,
     )
 
     # Bouton centré avec une icône
@@ -297,7 +318,6 @@ def display_intro_message(Historique_container):
     with col2:
         if Historique_container.button("🆕 Nouvelle discussion"):
             start_new_discussion()
-
 
 
 ##############################################################################
@@ -364,4 +384,4 @@ else:
 # Appeler la fonction pour Afficher les boutons
 display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
 setup_sidebar()
-display_summary_history()
+#display_summary_history()
