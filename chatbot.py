@@ -272,67 +272,119 @@ def display_historique(historique_container):
 
 def display_intro_message(Historique_container):
     """
-    Affiche un message de bienvenue stylisé avec un bouton déclenchant un callback Python.
+    Gère les trois étapes pour démarrer une nouvelle discussion.
     """
-    # Texte stylisé avec Markdown et CSS pour centrer les titres
-    Historique_container.markdown(
-        """
-<style>
-/* Titre principal */
-.title {
-    text-align: center;
-    color: white;
-    font-size: 20px; /* Taille réduite */
-    font-weight: bold;
-    background: linear-gradient(90deg, #ff8c00, #ff5722);
-    padding: 8px; /* Espacement réduit */
-    border-radius: 8px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
+    if st.session_state.current_step == 1 : 
+        # Texte stylisé avec Markdown et CSS pour centrer les titres
+        Historique_container.markdown(
+                """
+        <style>
+        /* Titre principal */
+        .title {
+            text-align: center;
+            color: white;
+            font-size: 20px; /* Taille réduite */
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff8c00, #ff5722);
+            padding: 8px; /* Espacement réduit */
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+        }
 
-/* Sous-titre */
-.subtitle {
-    text-align: center;
-    font-size: 16px; /* Taille réduite */
-    color: white;
-    padding: 5px; /* Espacement réduit */
-    border-radius: 5px;
-    margin-top: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
+        /* Sous-titre */
+        .subtitle {
+            text-align: center;
+            font-size: 16px; /* Taille réduite */
+            color: white;
+            padding: 5px; /* Espacement réduit */
+            border-radius: 5px;
+            margin-top: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+        }
 
-/* Contenu */
-.content {
-    font-size: 17px; /* Taille réduite */
-    color: white;
-    line-height: 1.6; /* Espacement légèrement réduit */
-    text-align: justify;
-    padding: 5px; /* Espacement interne réduit */
-    border-radius: 5px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    margin-top: 15px;
-}
-</style>
-<h4 class="title">👋 Bienvenue chez TEKIN !</h4>
-<div class="content">
-    Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
-    chacune dédiée à un aspect spécifique de votre projet IoT.
-    <br><br>
-    <strong>👉 Comment ça marche ?</strong><br>
-    - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
-    - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
-    <br><br>
-    <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
+        /* Contenu */
+        .content {
+            font-size: 17px; /* Taille réduite */
+            color: white;
+            line-height: 1.6; /* Espacement légèrement réduit */
+            text-align: justify;
+            padding: 5px; /* Espacement interne réduit */
+            border-radius: 5px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+        </style>
+        <h4 class="title">👋 Bienvenue chez TEKIN !</h4>
+        <div class="content">
+            Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
+            chacune dédiée à un aspect spécifique de votre projet IoT.
+            <br><br>
+            <strong>👉 Comment ça marche ?</strong><br>
+            - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
+            - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
+            <br><br>
+            <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
+        </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-    # Bouton centré avec une icône
-    col1, col2, col3 = Historique_container.columns([1, 2, 1])  # Colonnes pour centrer le bouton
-    with col2:
+        # Bouton  pour entamer la discussion 
         if Historique_container.button("🆕 Nouvelle discussion"):
-            start_new_discussion()
+            st.session_state.current_step = 2  # Passer à l'étape 2
+
+
+    elif st.session_state.current_step == 2:
+        # Étape 2 : Formulaire pour collecter les informations utilisateur
+        Historique_container.markdown(
+            """
+            <h4 class="title">📝 Informations nécessaires</h4>
+            <div class="content">
+                Avant de commencer, merci de renseigner vos informations.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        with Historique_container.form("nouvelle_discussion_form"):
+            email = st.text_input("Adresse e-mail", placeholder="exemple@domaine.com")
+            company_name_or_number = st.text_input("Nom ou numéro d'entreprise", placeholder="Entreprise XYZ ou N°12345")
+            submitted = st.form_submit_button("Commencer")
+
+            if submitted:
+                # Validation des champs
+                if not email.strip() or not company_name_or_number.strip():
+                    Historique_container.warning("Veuillez remplir tous les champs.")
+                elif "@" not in email or "." not in email:  # Validation d'email basique
+                    Historique_container.error("Adresse e-mail invalide.")
+                else:
+                    # Sauvegarde des informations
+                    st.session_state.user_details = {
+                        "email": email,
+                        "company": company_name_or_number,
+                    }
+                    st.session_state.current_step = 3  # Passer à l'étape 3
+
+    elif st.session_state.current_step == 3:
+        # Étape 3 : Démarrage de la discussion
+        start_new_discussion()
+        Historique_container.success(
+            f"Nouvelle discussion créée pour {st.session_state.user_details['email']} "
+            f"({st.session_state.user_details['company']})."
+        )
+        # Si une discussion est déjà en cours, afficher l'historique
+        st.session_state.chat_history.append({
+        'human': None,
+        'AI': """
+        Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+        Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+
+        Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
+
+        Appuyez sur "➡️ Prochaine section" pour continuer.
+        """
+    })
+        display_historique(historique_container)     
+        st.session_state.current_step = 1  # Réinitialisation pour les prochaines discussions
 
 
 ##############################################################################
@@ -361,6 +413,9 @@ if "current_sheet" not in st.session_state:
 
 if 'history_summary' not in st.session_state:
     st.session_state.history_summary = [] 
+
+if "current_step" not in st.session_state:
+    st.session_state.current_step = 1  # Initialisation à l'étape 1
 
 init()
 # Obtenir le prompt template mis à jour
