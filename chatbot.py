@@ -16,6 +16,8 @@ from layout import get_historique_container , get_title_container , get_input_qu
 from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet  
 from init import app_init
 
+st.set_page_config(layout="centered")
+
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
     "segments": [],  # Liste pour les détails au niveau des segments
@@ -280,11 +282,11 @@ def display_intro_message(Historique_container):
 .title {
     text-align: center;
     color: white;
-    font-size: 24px; /* Taille réduite */
+    font-size: 20px; /* Taille réduite */
     font-weight: bold;
     background: linear-gradient(90deg, #ff8c00, #ff5722);
-    padding: 10px; /* Espacement réduit */
-    border-radius: 10px;
+    padding: 8px; /* Espacement réduit */
+    border-radius: 8px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 }
 
@@ -293,27 +295,25 @@ def display_intro_message(Historique_container):
     text-align: center;
     font-size: 16px; /* Taille réduite */
     color: white;
-    background: linear-gradient(90deg, #4682b4, #1e90ff);
-    padding: 8px; /* Espacement réduit */
-    border-radius: 10px;
+    padding: 5px; /* Espacement réduit */
+    border-radius: 5px;
     margin-top: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 /* Contenu */
 .content {
-    font-size: 16px; /* Taille réduite */
+    font-size: 17px; /* Taille réduite */
     color: white;
     line-height: 1.6; /* Espacement légèrement réduit */
     text-align: justify;
-    padding: 10px; /* Espacement interne réduit */
-    border-radius: 10px;
+    padding: 5px; /* Espacement interne réduit */
+    border-radius: 5px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     margin-top: 15px;
 }
 </style>
-<h3 class="title">👋 Bienvenue chez TEKIN !</h3>
-<h5 class="subtitle">🌟 Créez votre cahier des charges IoT facilement !</h5>
+<h4 class="title">👋 Bienvenue chez TEKIN !</h4>
 <div class="content">
     Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
     chacune dédiée à un aspect spécifique de votre projet IoT.
