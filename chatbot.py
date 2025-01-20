@@ -276,25 +276,40 @@ def display_intro_message(Historique_container):
     Historique_container.markdown(
         """
 <style>
+/* Titre principal */
 .title {
     text-align: center;
-    color: darkorange;
-    font-size: 32px;
+    color: white;
+    font-size: 24px; /* Taille réduite */
     font-weight: bold;
+    background: linear-gradient(90deg, #ff8c00, #ff5722);
+    padding: 10px; /* Espacement réduit */
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 }
+
+/* Sous-titre */
 .subtitle {
     text-align: center;
-    font-size: 20px;
-    color: steelblue;
-}
-.content {
-    font-size: 16px;
-    color: white; /* Correction pour une meilleure lisibilité sur fond clair */
-    line-height: 1.8;
-    text-align: justify;
-    padding: 20px;
+    font-size: 16px; /* Taille réduite */
+    color: white;
+    background: linear-gradient(90deg, #4682b4, #1e90ff);
+    padding: 8px; /* Espacement réduit */
     border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour le style */
+    margin-top: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Contenu */
+.content {
+    font-size: 16px; /* Taille réduite */
+    color: white;
+    line-height: 1.6; /* Espacement légèrement réduit */
+    text-align: justify;
+    padding: 10px; /* Espacement interne réduit */
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 15px;
 }
 </style>
 <h3 class="title">👋 Bienvenue chez TEKIN !</h3>
