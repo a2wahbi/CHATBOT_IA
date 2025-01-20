@@ -67,7 +67,7 @@ def start_new_discussion():
     # Réinitialiser les données dans l'application
     st.session_state.chat_history = []
     st.session_state.current_sheet = new_sheet_name
-    st.success(f"Nouvelle discussion créée : {new_sheet_name}")
+    #st.success(f"Nouvelle discussion créée : {new_sheet_name}")
 
 ########################################################################################
 #                               Fonction Utiles                                         #
@@ -194,10 +194,6 @@ def display_historique(historique_container):
         # Affichage de l'historique de la conversation
     historique_container.subheader("📝 Conversation")
 
-    # Bouton pour démarrer une nouvelle discussion
-    if historique_container.button("🆕 Nouvelle discussion"):
-        start_new_discussion()
-
     for message in st.session_state.chat_history:
         if message['human'] is None and message['AI'].startswith("Bienvenue 👋!"):
             # Affichage du message de bienvenue avec un style personnalisé
@@ -272,27 +268,35 @@ def display_historique(historique_container):
                 if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
                     historique_container.chat_message("assistant").write(message["AI"])
 
-# Afficher le message d'introduction avec un bouton "Nouvelle discussion"
-def display_intro_message(historique_container):
+
+def display_intro_message(Historique_container):
     """
-    Affiche le texte introductif et le bouton "Nouvelle discussion".
+    Affiche un message de bienvenue stylisé avec un bouton déclenchant un callback Python.
     """
-    # Texte introductif
-    historique_container.markdown(
+    # Texte stylisé avec Markdown
+    Historique_container.markdown(
         """
-        <div style='text-align: center;'>
-            <h2>Bienvenue 👋!</h2>
-            <p>Ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.</p>
-            <p>Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.</p>
-            <p><strong>Pour commencer, cliquez sur le bouton <em>"Nouvelle discussion"</em> ci-dessous.</strong></p>
-        </div>
+        ## 👋 Bienvenue chez **TEKIN** !
+        
+        ### 🌟 Créez votre cahier des charges IoT facilement !
+        
+        Nous sommes ravis de vous accompagner dans votre projet. Ce processus est **simple et structuré** en plusieurs sections, 
+        chacune dédiée à un aspect spécifique de votre projet IoT.
+
+        👉 **Comment ça marche ?**
+        - Je vous poserai des questions claires pour collecter les informations essentielles.
+        - Une fois une section terminée, nous passerons automatiquement à la suivante.
+
+        **🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !**
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=False,
     )
 
-    # Bouton pour démarrer une nouvelle discussion
-    if historique_container.button("Nouvelle discussion", key="start_new_discussion_button"):
-        start_new_discussion()
+    # Bouton centré avec une icône
+    col1, col2, col3 = Historique_container.columns([1, 2, 1])  # Colonnes pour centrer le bouton
+    with col2:
+        if Historique_container.button("🆕 Nouvelle discussion"):
+            start_new_discussion()
 
 
 

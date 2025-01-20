@@ -49,7 +49,7 @@ def save_to_google_sheets(user_message, assistant_response, section_name , sheet
         # Ajouter une nouvelle ligne
         sheet.append_row([timestamp, user_message, assistant_response, section_name])
 
-        st.write("Données enregistrées avec succès.")
+        #st.write("Données enregistrées avec succès.")
     except Exception as e:
         st.write(f"Erreur lors de l'enregistrement des données : {e}")
 
@@ -64,6 +64,7 @@ def create_new_sheet(sheet_name):
         return spreadsheet.worksheet(sheet_name)
     except Exception as e:
         raise RuntimeError(f"Erreur lors de la création de la nouvelle feuille : {e}")
+    
 def test_google_sheets():
     try:
         sheet = connect_to_google_sheets()
