@@ -12,8 +12,7 @@ import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
-from layout import get_historique_container , get_title_container , get_input_question_container
-from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet  
+from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
 from init import app_init
 
 st.set_page_config(layout="centered")
@@ -56,20 +55,27 @@ def audio_input_widget ():
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
 
-def start_new_discussion():
-    """Démarre une nouvelle discussion en créant une nouvelle feuille."""
-    spreadsheet = connect_to_google_sheets()  # Récupère le classeur
-    existing_sheets = [sheet.title for sheet in spreadsheet.worksheets()]  # Liste des feuilles existantes
-    discussion_number = len(existing_sheets) + 1
-    new_sheet_name = f"Discussion {discussion_number}"
-
-    # Créer une nouvelle feuille
-    create_new_sheet(new_sheet_name)
-
-    # Réinitialiser les données dans l'application
-    st.session_state.chat_history = []
-    st.session_state.current_sheet = new_sheet_name
-    #st.success(f"Nouvelle discussion créée : {new_sheet_name}")
+def start_new_discussion(email, first_name, last_name):
+    """
+    Démarre une nouvelle discussion en créant une nouvelle feuille et en initialisant l'historique.
+    
+    Args:
+        email (str): Adresse e-mail de l'utilisateur.
+        first_name (str): Prénom de l'utilisateur.
+        last_name (str): Nom de l'utilisateur.
+    """
+    try:
+        # Créer une nouvelle feuille avec les informations utilisateur
+        user_sheet = create_new_sheet_from_user(email, first_name, last_name)
+        
+        # Mettre à jour la session avec la feuille actuelle
+        st.session_state.current_sheet = user_sheet.title
+        
+        # Réinitialiser l'historique de la discussion
+        st.session_state.chat_history = []
+        st.success(f"Nouvelle discussion démarrée dans la feuille : {st.session_state.current_sheet}.")
+    except Exception as e:
+        st.error(f"Erreur lors du démarrage de la discussion : {e}")
 
 ########################################################################################
 #                               Fonction Utiles                                         #
@@ -100,13 +106,8 @@ def clear_text():
                 # Add the user input and AI response to the session's chat history
                 st.session_state.chat_history.append({'human': st.session_state["text"] , 'AI': response.content})
                 
-                        # Enregistrement
-                save_to_google_sheets(
-                    st.session_state["text"],
-                    response.content,
-                    st.session_state.current_section,
-                    st.session_state.current_sheet
-                )
+                save_to_google_sheets(user_input, response.content, st.session_state.current_section)
+
                 
                 # Save to the file if memory length is reached
                 if len(st.session_state.chat_history) % memory_length == 0:
@@ -346,31 +347,27 @@ def display_intro_message(Historique_container):
             unsafe_allow_html=True,
         )
         with Historique_container.form("nouvelle_discussion_form"):
+
+            first_name = st.text_input("Prénom", placeholder="Votre prénom")
+            last_name = st.text_input("Nom", placeholder="Votre nom")
             email = st.text_input("Adresse e-mail", placeholder="exemple@domaine.com")
-            company_name_or_number = st.text_input("Nom ou numéro d'entreprise", placeholder="Entreprise XYZ ou N°12345")
             submitted = st.form_submit_button("Commencer")
 
             if submitted:
                 # Validation des champs
-                if not email.strip() or not company_name_or_number.strip():
+                if not first_name.strip() or not last_name.strip() or not email.strip():
                     Historique_container.warning("Veuillez remplir tous les champs.")
                 elif "@" not in email or "." not in email:  # Validation d'email basique
                     Historique_container.error("Adresse e-mail invalide.")
                 else:
-                    # Sauvegarde des informations
-                    st.session_state.user_details = {
-                        "email": email,
-                        "company": company_name_or_number,
-                    }
+                    # Démarrer une nouvelle discussion
+                    start_new_discussion(email, first_name, last_name)
+                    # Informer l'utilisateur
+                    st.success(f"Merci {first_name} {last_name} ! Nous avons créé votre espace dédié.")
+                    st.info(f"Le cahier des charges sera envoyé à **{email}** une fois complété.")
                     st.session_state.current_step = 3  # Passer à l'étape 3
 
     elif st.session_state.current_step == 3:
-        # Étape 3 : Démarrage de la discussion
-        start_new_discussion()
-        Historique_container.success(
-            f"Nouvelle discussion créée pour {st.session_state.user_details['email']} "
-            f"({st.session_state.user_details['company']})."
-        )
         # Si une discussion est déjà en cours, afficher l'historique
         st.session_state.chat_history.append({
         'human': None,
@@ -409,7 +406,6 @@ if 'full_prompt' not in st.session_state:
 
 if "current_sheet" not in st.session_state:
     st.session_state.current_sheet = "Discussion 1"  # Feuille par défaut
-    create_new_sheet(st.session_state.current_sheet)
 
 if 'history_summary' not in st.session_state:
     st.session_state.history_summary = [] 
