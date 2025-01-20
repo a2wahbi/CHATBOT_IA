@@ -183,7 +183,7 @@ def display_section_progress():
     st.sidebar.write("### Progression des Sections")
     for idx, section in enumerate(sections):
         icon = "✅" if idx < current_index else "🚀" if idx == current_index else "⏳"
-        color = "green" if idx < current_index else "red" if idx == current_index else "gray"
+        color = "steelblue" if idx < current_index else "darkorange" if idx == current_index else "gray"
         st.sidebar.markdown(f"{icon} <span style='color: {color}; font-weight: bold;'>{section}</span>", unsafe_allow_html=True)
 
 
@@ -221,13 +221,13 @@ def display_historique(historique_container):
             historique_container.markdown(
                 f"""
                 <h3 style='
-                    color: #FF5733; 
+                    color: #FF8C00; 
                     font-size: 24px; 
                     font-weight: bold; 
                     text-align: center; 
                     margin-top: 20px; 
                     margin-bottom: 10px; 
-                    border-bottom: 2px solid #FF5733;
+                    border-bottom: 2px solid #FFC800;
                     padding-bottom: 5px;
                     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
                 '>{message['AI'][4:].strip()}</h3>
