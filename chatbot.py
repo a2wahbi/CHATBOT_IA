@@ -34,6 +34,45 @@ if os.path.exists("style.css"):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 ##############################################################################
+#                             Callbacks                                      #
+##############################################################################
+def start_discussion_callback():
+    """Callback pour passer à l'étape 2."""
+    st.session_state.current_step = 2
+
+
+def submit_user_info_callback():
+    """Callback pour soumettre les informations utilisateur."""
+    first_name = st.session_state.get("first_name", "").strip()
+    last_name = st.session_state.get("last_name", "").strip()
+    email = st.session_state.get("email", "").strip()
+
+    if not first_name or not last_name or not email:
+        st.warning("Veuillez remplir tous les champs.")
+    elif "@" not in email or "." not in email:
+        st.error("Adresse e-mail invalide.")
+    else:
+        st.session_state.user_details = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+        }
+        st.session_state.current_step = 3
+
+
+def start_new_discussion_callback():
+    """Callback pour démarrer une nouvelle discussion."""
+    user_details = st.session_state.get("user_details", {})
+    if user_details:
+        start_new_discussion(
+            user_details.get("email"),
+            user_details.get("first_name"),
+            user_details.get("last_name"),
+        )
+        st.session_state.current_step = 4
+
+
+##############################################################################
 #                               speech to text                                #
 ##############################################################################
 def audio_input_widget (): 
@@ -281,16 +320,20 @@ def display_historique(historique_container):
                 if message["AI"] and message["AI"].strip():  # Vérifie que le message de l'IA n'est pas vide
                     historique_container.chat_message("assistant").write(message["AI"])
 
-def display_intro_message(Historique_container):
+##############################################################################
+#                          Display Intro Message                            #
+##############################################################################
+def display_intro_message(historique_container):
     """
     Gère les étapes pour démarrer une nouvelle discussion.
     """
+    # Initialisation par défaut
     if "current_step" not in st.session_state:
-        st.session_state.current_step = 1  # Initialisation par défaut
+        st.session_state.current_step = 1  
 
     if st.session_state.current_step == 1:
-        # Message d'accueil stylisé
-        Historique_container.markdown(
+        # Étape 1 : Message d'accueil stylisé
+        historique_container.markdown(
             """
             <style>
             .title {
@@ -329,107 +372,97 @@ def display_intro_message(Historique_container):
             unsafe_allow_html=True,
         )
 
-        # Bouton Streamlit natif pour commencer une nouvelle discussion
-        if Historique_container.button("🆕 Nouvelle discussion"):
-            st.session_state.current_step = 2  # Passer à l'étape 2
+        # Bouton avec callback
+        historique_container.button(
+            "🆕 Nouvelle discussion", 
+            on_click=start_discussion_callback
+        )
 
     elif st.session_state.current_step == 2:
         # Étape 2 : Formulaire pour les informations utilisateur
-        Historique_container.markdown(
+        historique_container.markdown(
             """
-            <h4 style="text-align: center; color: #FF5722;">📝 Informations nécessaires</h4>
+            <h5 style="text-align: center; color: #FF5722;">📝 Informations nécessaires</h5>
             <p style="text-align: center; color: white;">
                 Avant de commencer, merci de renseigner vos informations.
             </p>
             """,
             unsafe_allow_html=True,
         )
-        with Historique_container.form("nouvelle_discussion_form"):
-            first_name = st.text_input("Prénom", placeholder="Votre prénom")
-            last_name = st.text_input("Nom", placeholder="Votre nom")
-            email = st.text_input("Adresse e-mail", placeholder="exemple@domaine.com")
-            submitted = st.form_submit_button("Commencer")
-
-            if submitted:
-                if not first_name.strip() or not last_name.strip() or not email.strip():
-                    Historique_container.warning("Veuillez remplir tous les champs.")
-                elif "@" not in email or "." not in email:
-                    Historique_container.error("Adresse e-mail invalide.")
-                else:
-                    # Stocker les informations utilisateur dans la session
-                    st.session_state.user_details = {
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": email
-                    }
-                    st.session_state.current_step = 3  # Passer à l'étape 3
+        historique_container.text_input("Prénom", placeholder="Votre prénom", key="first_name")
+        historique_container.text_input("Nom", placeholder="Votre nom", key="last_name")
+        historique_container.text_input("Adresse e-mail", placeholder="exemple@domaine.com", key="email")
+        historique_container.button(
+            "Commencer",
+            on_click=submit_user_info_callback,
+        )
 
     elif st.session_state.current_step == 3:
         # Étape 3 : Confirmation
-        user_details = st.session_state.user_details
+        user_details = st.session_state.get("user_details", {})
 
-        Historique_container.markdown(
-            f"""
-            <h4 style="text-align: center; color: #FF5722;">Merci {user_details['first_name']} {user_details['last_name']} !</h4>
-            <p style="text-align: center; color: white;">
-                Nous avons créé votre espace dédié.
-            </p>
-            <p style="text-align: center; color: white;">
-                Le cahier des charges sera envoyé à <strong>{user_details['email']}</strong> une fois complété.
-            </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        custom_button_style = """
-            <style>
-                .custom-button {
-                    display: block;
-                    margin: 20px auto;
-                    padding: 15px 25px;
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: white;
-                    background: linear-gradient(90deg, #FF8C00, #FF5722);
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-                    transition: transform 0.2s, box-shadow 0.2s;
-                }
-                .custom-button:hover {
-                    transform: scale(1.05);
-                    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
-                }
-            </style>
-        """
-        Historique_container.markdown(custom_button_style, unsafe_allow_html=True)
-
-        # Bouton Streamlit avec style appliqué
-        if Historique_container.button("🚀 Démarrer la discussion", key="start_discussion_button", use_container_width=True):
-            start_new_discussion(
-                user_details['email'], user_details['first_name'], user_details['last_name']
+        if user_details:
+            historique_container.markdown(
+                f"""
+                <h4 style="text-align: center; color: #FF5722;">Merci {user_details['first_name']} {user_details['last_name']} !</h4>
+                <p style="text-align: center; color: white;">
+                    Nous avons créé votre espace dédié.
+                </p>
+                <p style="text-align: center; color: white;">
+                    Le cahier des charges sera envoyé à <strong>{user_details['email']}</strong> une fois complété.
+                </p>
+                """,
+                unsafe_allow_html=True,
             )
-            st.session_state.current_step = 4  # Passer à l'étape 4
+            custom_button_style = """
+                <style>
+                    .custom-button {
+                        display: block;
+                        margin: 20px auto;
+                        padding: 15px 25px;
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: white;
+                        background: linear-gradient(90deg, #FF8C00, #FF5722);
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+                        transition: transform 0.2s, box-shadow 0.2s;
+                    }
+                    .custom-button:hover {
+                        transform: scale(1.05);
+                        box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+                    }
+                </style>
+            """
+            historique_container.markdown(custom_button_style, unsafe_allow_html=True)
 
+            # Bouton pour démarrer la discussion
+            historique_container.button(
+                "🚀 Démarrer la discussion",
+                on_click=start_new_discussion_callback,
+            )
 
     elif st.session_state.current_step == 4:
         # Étape 4 : Démarrage de la discussion
-        st.session_state.chat_history.append({
-            'human': None,
-            'AI': """
-            Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
-            Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+        st.session_state.chat_history.append(
+            {
+                "human": None,
+                "AI": """
+                Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+                Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
 
-            Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
+                Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
 
-            Appuyez sur "➡️ Prochaine section" pour continuer.
-            """
-        })
-        display_historique(Historique_container)
+                Appuyez sur "➡️ Prochaine section" pour continuer.
+                """,
+            }
+        )
+        display_historique(historique_container)
 
         # Réinitialisation pour les prochaines discussions
         st.session_state.current_step = 1
-
 
 ##############################################################################
 #                               APP                                          #
