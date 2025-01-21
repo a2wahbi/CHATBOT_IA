@@ -13,10 +13,11 @@ from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
-from init import app_init
+from init import app_init , init_input_user_container
 import html  # Importer le module pour échapper les caractères spéciaux
 
 st.set_page_config(layout="centered")
+
 
 result = {
     "text": "",  # Chaîne de caractères pour le texte résultant
@@ -461,15 +462,12 @@ def display_intro_message(historique_container):
         )
         display_historique(historique_container)
 
-        # Réinitialisation pour les prochaines discussions
-        st.session_state.current_step = 1
-
 ##############################################################################
 #                               APP                                          #
 ##############################################################################  
 
 # Initialisation 
-title_container , historique_container , input_question_container , model_choice, memory_length, max_tokens , memory  , groq_chat , conversation , model  = app_init()
+title_container , historique_container , model_choice, memory_length, max_tokens , memory  , groq_chat , conversation , model  = app_init()
 
 # Initialisation de l'historique de conversation dans la session
 if 'chat_history' not in st.session_state:
@@ -511,23 +509,28 @@ else:
 
 # Widget audio
 #audio_input_widget()
+# Affichage du conteneur uniquement à l'étape 4
+if st.session_state.current_step == 4:
+    # Initialiser le conteneur
+    input_question_container = init_input_user_container()
 
-# Champ de saisie pour la question utilisateu
-if result["text"] :
-    user_question = input_question_container.text_area(
-    "Posez votre question ici 👇",
-    value=result["text"],
-    placeholder="Comment puis-je vous aider ?",
-    key = "text",
-    )
-else: 
-    user_question = input_question_container.text_area(
-    "Posez votre question ici 👇",
-    placeholder="Comment puis-je vous aider ?",
-    key = "text"
-    )
+    # Champ de saisie pour la question utilisateur
+    with input_question_container:
+        if result["text"]:
+            user_question = st.text_area(
+                "Posez votre question ici 👇",
+                value=result["text"],
+                placeholder="Comment puis-je vous aider ?",
+                key="text",
+            )
+        else:
+            user_question = st.text_area(
+                "Posez votre question ici 👇",
+                placeholder="Comment puis-je vous aider ?",
+                key="text",
+            )
 
-# Appeler la fonction pour Afficher les boutons
-display_interactive_buttons(input_question_container, clear_text, clear_text_with_default)
+        # Afficher les boutons interactifs
+        display_interactive_buttons(st, clear_text, clear_text_with_default)
 setup_sidebar()
 #display_summary_history()

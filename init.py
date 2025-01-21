@@ -10,9 +10,14 @@ from streamlit_extras.bottom_container import bottom
 def init_container():
     title_container = get_title_container()
     historique_container = get_historique_container()
-    with bottom():
-        input_question_container = get_input_question_container()
-    return title_container, historique_container, input_question_container
+    #with bottom():
+        #input_question_container = get_input_question_container()
+    return title_container, historique_container
+
+def init_input_user_container():
+        with bottom():
+            input_question_container = get_input_question_container()
+        return input_question_container
 
 # Afficher les titres
 def display_titles(title_container):
@@ -60,7 +65,7 @@ def load_model_whisper():
 
 # Fonction principale d'initialisation de l'application
 def app_init():
-    title_container , historique_container , input_question_container =  init_container()
+    title_container , historique_container =  init_container()
     display_titles(title_container)
     load_environment_variables()
     model_choice, memory_length, max_tokens = init_chat_parameters()
@@ -69,4 +74,4 @@ def app_init():
     conversation = init_conversation_chain(groq_chat , memory)
     model = 0
     #load_model_whisper()
-    return title_container , historique_container , input_question_container , model_choice, memory_length , max_tokens , memory , groq_chat , conversation , model 
+    return title_container , historique_container , model_choice, memory_length , max_tokens , memory , groq_chat , conversation , model 
