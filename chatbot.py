@@ -14,6 +14,7 @@ from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt 
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
 from init import app_init
+import html  # Importer le module pour échapper les caractères spéciaux
 
 st.set_page_config(layout="centered")
 
@@ -73,7 +74,6 @@ def start_new_discussion(email, first_name, last_name):
         
         # Réinitialiser l'historique de la discussion
         st.session_state.chat_history = []
-        st.success(f"Nouvelle discussion démarrée dans la feuille : {st.session_state.current_sheet}.")
     except Exception as e:
         st.error(f"Erreur lors du démarrage de la discussion : {e}")
 
@@ -224,13 +224,13 @@ def display_historique(historique_container):
             historique_container.markdown(
                 f"""
                 <h3 style='
-                    color: #FF8C00; 
+                    color: #FF5733; 
                     font-size: 24px; 
                     font-weight: bold; 
                     text-align: center; 
                     margin-top: 20px; 
                     margin-bottom: 10px; 
-                    border-bottom: 2px solid #FFC800;
+                    border-bottom: 2px solid #FF5733;
                     padding-bottom: 5px;
                     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
                 '>{message['AI'][4:].strip()}</h3>
@@ -238,23 +238,33 @@ def display_historique(historique_container):
                 unsafe_allow_html=True
             )
         elif message['human'] is None and "Merci pour votre confiance" in message['AI']:
-            # Affichage du message de fin
             historique_container.markdown(
-                f"""
-                <div style='
+                """
+                <div style="
                     background-color: #EAF7FF; 
                     border: 1px solid #B3E5FC; 
                     border-radius: 10px; 
                     padding: 15px; 
-                    margin-bottom: 20px;
-                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-                    font-family: Arial, sans-serif;
-                    color: #01579B;'>
-                    {message['AI']}
+                    margin-bottom: 15px; 
+                    font-family: 'Arial', sans-serif; 
+                    font-size: 16px; 
+                    color: #01579B; 
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); 
+                    line-height: 1.4;
+                ">
+                    <p style="margin: 0; font-weight: bold; font-size: 18px; text-align: center;">
+                        Merci pour votre confiance et d'avoir choisi <span style="color: #FF5722;">TEKIN</span> ! 😊
+                    </p>
+                    <p style="margin: 10px 0; text-align: center; font-size: 14px;">
+                        Vous êtes déjà à la fin du processus. Si vous avez d'autres questions, n'hésitez pas à les poser !
+                    </p>
                 </div>
-                """, 
+                """,
                 unsafe_allow_html=True
             )
+
+
+
         elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
             # Bouton de téléchargement
             download_content = generate_summary_document()
@@ -273,115 +283,152 @@ def display_historique(historique_container):
 
 def display_intro_message(Historique_container):
     """
-    Gère les trois étapes pour démarrer une nouvelle discussion.
+    Gère les étapes pour démarrer une nouvelle discussion.
     """
-    if st.session_state.current_step == 1 : 
-        # Texte stylisé avec Markdown et CSS pour centrer les titres
-        Historique_container.markdown(
-                """
-        <style>
-        /* Titre principal */
-        .title {
-            text-align: center;
-            color: white;
-            font-size: 20px; /* Taille réduite */
-            font-weight: bold;
-            background: linear-gradient(90deg, #ff8c00, #ff5722);
-            padding: 8px; /* Espacement réduit */
-            border-radius: 8px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-        }
+    if "current_step" not in st.session_state:
+        st.session_state.current_step = 1  # Initialisation par défaut
 
-        /* Sous-titre */
-        .subtitle {
-            text-align: center;
-            font-size: 16px; /* Taille réduite */
-            color: white;
-            padding: 5px; /* Espacement réduit */
-            border-radius: 5px;
-            margin-top: 10px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Contenu */
-        .content {
-            font-size: 17px; /* Taille réduite */
-            color: white;
-            line-height: 1.6; /* Espacement légèrement réduit */
-            text-align: justify;
-            padding: 5px; /* Espacement interne réduit */
-            border-radius: 5px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-            margin-top: 15px;
-        }
-        </style>
-        <h4 class="title">👋 Bienvenue chez TEKIN !</h4>
-        <div class="content">
-            Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
-            chacune dédiée à un aspect spécifique de votre projet IoT.
-            <br><br>
-            <strong>👉 Comment ça marche ?</strong><br>
-            - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
-            - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
-            <br><br>
-            <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
-        </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        # Bouton  pour entamer la discussion 
-        if Historique_container.button("🆕 Nouvelle discussion"):
-            st.session_state.current_step = 2  # Passer à l'étape 2
-
-
-    elif st.session_state.current_step == 2:
-        # Étape 2 : Formulaire pour collecter les informations utilisateur
+    if st.session_state.current_step == 1:
+        # Message d'accueil stylisé
         Historique_container.markdown(
             """
-            <h4 class="title">📝 Informations nécessaires</h4>
+            <style>
+            .title {
+                text-align: center;
+                color: white;
+                font-size: 20px;
+                font-weight: bold;
+                background: linear-gradient(90deg, #ff8c00, #ff5722);
+                padding: 8px;
+                border-radius: 8px;
+                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+            }
+            .content {
+                font-size: 17px;
+                color: white;
+                line-height: 1.6;
+                text-align: justify;
+                padding: 5px;
+                border-radius: 5px;
+                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+                margin-top: 15px;
+            }
+            </style>
+            <h4 class="title">👋 Bienvenue chez TEKIN !</h4>
             <div class="content">
-                Avant de commencer, merci de renseigner vos informations.
+                Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
+                chacune dédiée à un aspect spécifique de votre projet IoT.
+                <br><br>
+                <strong>👉 Comment ça marche ?</strong><br>
+                - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
+                - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
+                <br><br>
+                <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        with Historique_container.form("nouvelle_discussion_form"):
 
+        # Bouton Streamlit natif pour commencer une nouvelle discussion
+        if Historique_container.button("🆕 Nouvelle discussion"):
+            st.session_state.current_step = 2  # Passer à l'étape 2
+
+    elif st.session_state.current_step == 2:
+        # Étape 2 : Formulaire pour les informations utilisateur
+        Historique_container.markdown(
+            """
+            <h4 style="text-align: center; color: #FF5722;">📝 Informations nécessaires</h4>
+            <p style="text-align: center; color: white;">
+                Avant de commencer, merci de renseigner vos informations.
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+        with Historique_container.form("nouvelle_discussion_form"):
             first_name = st.text_input("Prénom", placeholder="Votre prénom")
             last_name = st.text_input("Nom", placeholder="Votre nom")
             email = st.text_input("Adresse e-mail", placeholder="exemple@domaine.com")
             submitted = st.form_submit_button("Commencer")
 
             if submitted:
-                # Validation des champs
                 if not first_name.strip() or not last_name.strip() or not email.strip():
                     Historique_container.warning("Veuillez remplir tous les champs.")
-                elif "@" not in email or "." not in email:  # Validation d'email basique
+                elif "@" not in email or "." not in email:
                     Historique_container.error("Adresse e-mail invalide.")
                 else:
-                    # Démarrer une nouvelle discussion
-                    start_new_discussion(email, first_name, last_name)
-                    # Informer l'utilisateur
-                    st.success(f"Merci {first_name} {last_name} ! Nous avons créé votre espace dédié.")
-                    st.info(f"Le cahier des charges sera envoyé à **{email}** une fois complété.")
+                    # Stocker les informations utilisateur dans la session
+                    st.session_state.user_details = {
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "email": email
+                    }
                     st.session_state.current_step = 3  # Passer à l'étape 3
 
     elif st.session_state.current_step == 3:
-        # Si une discussion est déjà en cours, afficher l'historique
-        st.session_state.chat_history.append({
-        'human': None,
-        'AI': """
-        Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
-        Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+        # Étape 3 : Confirmation
+        user_details = st.session_state.user_details
 
-        Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
-
-        Appuyez sur "➡️ Prochaine section" pour continuer.
+        Historique_container.markdown(
+            f"""
+            <h4 style="text-align: center; color: #FF5722;">Merci {user_details['first_name']} {user_details['last_name']} !</h4>
+            <p style="text-align: center; color: white;">
+                Nous avons créé votre espace dédié.
+            </p>
+            <p style="text-align: center; color: white;">
+                Le cahier des charges sera envoyé à <strong>{user_details['email']}</strong> une fois complété.
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+        custom_button_style = """
+            <style>
+                .custom-button {
+                    display: block;
+                    margin: 20px auto;
+                    padding: 15px 25px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: white;
+                    background: linear-gradient(90deg, #FF8C00, #FF5722);
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                .custom-button:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+                }
+            </style>
         """
-    })
-        display_historique(historique_container)     
-        st.session_state.current_step = 1  # Réinitialisation pour les prochaines discussions
+        Historique_container.markdown(custom_button_style, unsafe_allow_html=True)
+
+        # Bouton Streamlit avec style appliqué
+        if Historique_container.button("🚀 Démarrer la discussion", key="start_discussion_button", use_container_width=True):
+            start_new_discussion(
+                user_details['email'], user_details['first_name'], user_details['last_name']
+            )
+            st.session_state.current_step = 4  # Passer à l'étape 4
+
+
+    elif st.session_state.current_step == 4:
+        # Étape 4 : Démarrage de la discussion
+        st.session_state.chat_history.append({
+            'human': None,
+            'AI': """
+            Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
+            Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
+
+            Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
+
+            Appuyez sur "➡️ Prochaine section" pour continuer.
+            """
+        })
+        display_historique(Historique_container)
+
+        # Réinitialisation pour les prochaines discussions
+        st.session_state.current_step = 1
 
 
 ##############################################################################
