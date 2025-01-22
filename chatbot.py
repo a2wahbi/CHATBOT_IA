@@ -70,8 +70,9 @@ def start_new_discussion_callback():
             user_details.get("first_name"),
             user_details.get("last_name"),
         )
-        st.session_state.current_step = 4
+        st.session_state.current_step = None  # Évitez les affichages inutiles d'étapes
 
+        next_section()
 
 ##############################################################################
 #                               speech to text                                #
@@ -483,7 +484,7 @@ else:
 # Widget audio
 #audio_input_widget()
 # Affichage du conteneur uniquement à l'étape 4
-if st.session_state.current_step == 4:
+if st.session_state.current_step == None:
     # Initialiser le conteneur
     input_question_container = init_input_user_container()
 
