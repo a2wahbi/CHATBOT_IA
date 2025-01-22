@@ -333,51 +333,67 @@ def display_intro_message(historique_container):
         st.session_state.current_step = 1  
 
     if st.session_state.current_step == 1:
-        # Étape 1 : Message d'accueil stylisé
         historique_container.markdown(
-            """
-            <style>
-            .title {
-                text-align: center;
-                color: white;
-                font-size: 20px;
-                font-weight: bold;
-                background: linear-gradient(90deg, #ff8c00, #ff5722);
-                padding: 8px;
-                border-radius: 8px;
-                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-            }
-            .content {
-                font-size: 17px;
-                color: white;
-                line-height: 1.6;
-                text-align: justify;
-                padding: 5px;
-                border-radius: 5px;
-                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-                margin-top: 15px;
-            }
-            </style>
-            <h4 class="title">👋 Bienvenue chez TEKIN !</h4>
-            <div class="content">
-                Nous sommes ravis de vous accompagner dans votre projet. Ce processus est <strong>simple et structuré</strong> en plusieurs sections, 
-                chacune dédiée à un aspect spécifique de votre projet IoT.
-                <br><br>
-                <strong>👉 Comment ça marche ?</strong><br>
-                - Je vous poserai des questions claires pour collecter les informations essentielles.<br>
-                - Une fois une section terminée, vous pouvez passer à la suivante en cliquant sur le bouton <strong>"Prochaine section"</strong>, situé à côté du bouton <strong>"Envoyer"</strong>.
-                <br><br>
-                <strong>🎯 Prêt à commencer ? Cliquez sur le bouton ci-dessous !</strong>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    """
+    <style>
+    .title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        background: linear-gradient(90deg, #ff8c00, #ff5722);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+    .content {
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: justify;
+        color: white;
+        margin-top: 10px;
+    }
+    .highlight {
+        font-weight: bold;
+        color: #ff8c00;
+    }
+    .button-spacing {
+        margin-top: 20px; /* Espace entre le texte et le bouton */
+    }
+    </style>
+    <div>
+        <div class="title">👋 Bienvenue chez TEKIN !</div>
+        <div class="content">
+            Nous sommes ravis de vous accompagner dans la réussite de votre projet IoT. 
+            Notre méthode est conçue pour être <span class="highlight">simple</span>, 
+            <span class="highlight">structurée</span> et <span class="highlight">efficace</span>, avec des étapes clairement définies.
+            <br><br>
+            🔎 <strong>Comment ça fonctionne ?</strong>
+            <ul>
+                <li>Nous vous poserons des questions ciblées pour collecter toutes les informations nécessaires.</li>
+                <li>Chaque étape est dédiée à un aspect clé de votre projet.</li>
+            </ul>
+            <br>
+            🎯 <strong>Prêt à commencer ?</strong>
+            <br>
+            Cliquez sur le bouton ci-dessous pour débuter votre aventure avec TEKIN !
+        </div>
+        <div class="button-spacing"></div> <!-- Espace ajouté ici -->
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+        col1, col2 = historique_container.columns(2)  # Utiliser la méthode columns correctement
+        # Bouton avec callback dans la première colonne
+        col1.button(
+            "🆕 Nouvelle discussion",
+            on_click=start_discussion_callback,
+            use_container_width=True,  # Ajuster le bouton à la largeur de la colonne
+            type="primary"  # Si type="primary" est pris en charge par une extension
         )
 
-        # Bouton avec callback
-        historique_container.button(
-            "🆕 Nouvelle discussion", 
-            on_click=start_discussion_callback
-        )
 
     elif st.session_state.current_step == 2:
         # Étape 2 : Formulaire pour les informations utilisateur
@@ -442,8 +458,8 @@ def display_intro_message(historique_container):
             # Bouton pour démarrer la discussion
             historique_container.button(
                 "🚀 Démarrer la discussion",
-                on_click=start_new_discussion_callback,
-            )
+                on_click=start_new_discussion_callback
+                                        )
 
     elif st.session_state.current_step == 4:
         # Étape 4 : Démarrage de la discussion
@@ -533,4 +549,4 @@ if st.session_state.current_step == 4:
         # Afficher les boutons interactifs
         display_interactive_buttons(st, clear_text, clear_text_with_default)
 setup_sidebar()
-#display_summary_history()
+display_summary_history()
