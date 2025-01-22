@@ -363,20 +363,37 @@ def display_intro_message(historique_container):
         # Étape 2 : Formulaire pour les informations utilisateur
         historique_container.markdown(
             """
-            
             ### 📝 Informations nécessaires
-            Avant de commencer, merci de renseigner vos informations.
+            
+            Afin de personnaliser votre expérience et vous envoyer le cahier des charges complet une fois finalisé, 
+            merci de renseigner vos informations.
+            
+            **📧 Votre adresse e-mail est essentielle pour recevoir le cahier de charge final.**
             """,
             unsafe_allow_html=False,
         )
-        historique_container.text_input("Prénom", placeholder="Votre prénom", key="first_name")
-        historique_container.text_input("Nom", placeholder="Votre nom", key="last_name")
-        historique_container.text_input("Adresse e-mail", placeholder="exemple@domaine.com", key="email")
-        historique_container.button(
-            "Commencer",
-            on_click=submit_user_info_callback,
-            type = "primary"
+        
+        # Ajout des champs avec une indication claire des champs obligatoires
+        first_name = historique_container.text_input(
+            "Prénom *", 
+            placeholder="Votre prénom", 
+            key="first_name"
         )
+        last_name = historique_container.text_input(
+            "Nom *", 
+            placeholder="Votre nom", 
+            key="last_name"
+        )
+        email = historique_container.text_input(
+            "Adresse e-mail *", 
+            placeholder="exemple@domaine.com", 
+            key="email"
+        )
+        
+        # Affichage du bouton "Commencer" avec un rappel
+        historique_container.button("Commencer", on_click=submit_user_info_callback, type="primary")
+
+
 
     elif st.session_state.current_step == 3:
         # Étape 3 : Confirmation
