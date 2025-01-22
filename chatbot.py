@@ -334,56 +334,21 @@ def display_intro_message(historique_container):
 
     if st.session_state.current_step == 1:
         historique_container.markdown(
-    """
-    <style>
-    .title {
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        background: linear-gradient(90deg, #ff8c00, #ff5722);
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-        color: white;
-    }
-    .content {
-        font-size: 16px;
-        line-height: 1.6;
-        text-align: justify;
-        color: white;
-        margin-top: 10px;
-    }
-    .highlight {
-        font-weight: bold;
-        color: #ff8c00;
-    }
-    .button-spacing {
-        margin-top: 20px; /* Espace entre le texte et le bouton */
-    }
-    </style>
-    <div>
-        <div class="title">👋 Bienvenue chez TEKIN !</div>
-        <div class="content">
-            Nous sommes ravis de vous accompagner dans la réussite de votre projet IoT. 
-            Notre méthode est conçue pour être <span class="highlight">simple</span>, 
-            <span class="highlight">structurée</span> et <span class="highlight">efficace</span>, avec des étapes clairement définies.
-            <br><br>
-            🔎 <strong>Comment ça fonctionne ?</strong>
-            <ul>
-                <li>Nous vous poserons des questions ciblées pour collecter toutes les informations nécessaires.</li>
-                <li>Chaque étape est dédiée à un aspect clé de votre projet.</li>
-            </ul>
-            <br>
-            🎯 <strong>Prêt à commencer ?</strong>
-            <br>
+            """
+            ## 👋 Bienvenue chez TEKIN !
+            
+            Nous sommes ravis de vous accompagner dans la réussite de votre projet IoT.
+            
+            ### 🔎 Comment ça fonctionne ?
+            - Nous vous poserons des questions ciblées pour collecter toutes les informations nécessaires.
+            - Chaque étape est dédiée à un aspect clé de votre projet.
+            
+            🎯 **Prêt à commencer ?**
+            
             Cliquez sur le bouton ci-dessous pour débuter votre aventure avec TEKIN !
-        </div>
-        <div class="button-spacing"></div> <!-- Espace ajouté ici -->
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+            """,
+            unsafe_allow_html=False
+        )
 
         col1, col2 = historique_container.columns(2)  # Utiliser la méthode columns correctement
         # Bouton avec callback dans la première colonne
@@ -391,20 +356,18 @@ def display_intro_message(historique_container):
             "🆕 Nouvelle discussion",
             on_click=start_discussion_callback,
             use_container_width=True,  # Ajuster le bouton à la largeur de la colonne
-            type="primary"  # Si type="primary" est pris en charge par une extension
+            type = "primary"
         )
-
 
     elif st.session_state.current_step == 2:
         # Étape 2 : Formulaire pour les informations utilisateur
         historique_container.markdown(
             """
-            <h5 style="text-align: center; color: #FF5722;">📝 Informations nécessaires</h5>
-            <p style="text-align: center; color: white;">
-                Avant de commencer, merci de renseigner vos informations.
-            </p>
+            
+            ### 📝 Informations nécessaires
+            Avant de commencer, merci de renseigner vos informations.
             """,
-            unsafe_allow_html=True,
+            unsafe_allow_html=False,
         )
         historique_container.text_input("Prénom", placeholder="Votre prénom", key="first_name")
         historique_container.text_input("Nom", placeholder="Votre nom", key="last_name")
@@ -412,6 +375,7 @@ def display_intro_message(historique_container):
         historique_container.button(
             "Commencer",
             on_click=submit_user_info_callback,
+            type = "primary"
         )
 
     elif st.session_state.current_step == 3:
@@ -421,45 +385,21 @@ def display_intro_message(historique_container):
         if user_details:
             historique_container.markdown(
                 f"""
-                <h4 style="text-align: center; color: #FF5722;">Merci {user_details['first_name']} {user_details['last_name']} !</h4>
-                <p style="text-align: center; color: white;">
-                    Nous avons créé votre espace dédié.
-                </p>
-                <p style="text-align: center; color: white;">
-                    Le cahier des charges sera envoyé à <strong>{user_details['email']}</strong> une fois complété.
-                </p>
+                ## Merci {user_details['first_name']} {user_details['last_name']} !
+                
+                Nous avons créé votre espace dédié.
+                
+                Le cahier des charges sera envoyé à **{user_details['email']}** une fois complété.
                 """,
-                unsafe_allow_html=True,
+                unsafe_allow_html=False,
             )
-            custom_button_style = """
-                <style>
-                    .custom-button {
-                        display: block;
-                        margin: 20px auto;
-                        padding: 15px 25px;
-                        font-size: 18px;
-                        font-weight: bold;
-                        color: white;
-                        background: linear-gradient(90deg, #FF8C00, #FF5722);
-                        border: none;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    }
-                    .custom-button:hover {
-                        transform: scale(1.05);
-                        box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
-                    }
-                </style>
-            """
-            historique_container.markdown(custom_button_style, unsafe_allow_html=True)
 
             # Bouton pour démarrer la discussion
             historique_container.button(
                 "🚀 Démarrer la discussion",
-                on_click=start_new_discussion_callback
-                                        )
+                on_click=start_new_discussion_callback,
+                type = "primary"
+            )
 
     elif st.session_state.current_step == 4:
         # Étape 4 : Démarrage de la discussion
@@ -467,11 +407,11 @@ def display_intro_message(historique_container):
             {
                 "human": None,
                 "AI": """
-                Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN. 
-                Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.  
-
-                Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.  
-
+                Bienvenue 👋! Je suis ravi de vous accompagner dans la création de votre cahier des charges IoT avec TEKIN.
+                Ce processus est structuré en plusieurs sections, chacune dédiée à un aspect spécifique de votre projet.
+                
+                Je vous poserai des questions claires pour recueillir les informations essentielles. Une fois une section complétée, nous passerons à la suivante.
+                
                 Appuyez sur "➡️ Prochaine section" pour continuer.
                 """,
             }
