@@ -8,13 +8,13 @@ class SideBarView:
         pass
 
 
-    def displayLogo(self , use_container_width):
+    def display_Logo(self , use_container_width):
         st.sidebar.image(self.logo, use_container_width= use_container_width )
     
-    def displaySectionProgress(self):
+    def display_Section_Progress(self):
         st.sidebar.markdown("## Progression")
-    
+
 
 sidebar_display = SideBarView()
-sidebar_display.displayLogo(True)
-sidebar_display.displaySectionProgress()
+sidebar_display.display_Logo(True)
+sidebar_display.display_Section_Progress()
