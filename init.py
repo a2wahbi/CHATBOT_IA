@@ -33,7 +33,7 @@ def load_environment_variables():
 @st.cache_resource
 def init_chat_parameters():
     model_choice = "llama3-70b-8192"
-    memory_length = 5
+    memory_length = 7
     max_tokens = 5000
     return model_choice, memory_length, max_tokens
 

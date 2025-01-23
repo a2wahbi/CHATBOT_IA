@@ -426,10 +426,9 @@ def display_intro_message(historique_container):
             """
             ### 📝 Informations nécessaires
             
-            Afin de personnaliser votre expérience et vous envoyer le cahier des charges complet une fois finalisé, 
-            merci de renseigner vos informations.
+            Pour personnaliser votre expérience et vous permettre de télécharger le cahier des charges complet, nous avons besoin de quelques informations.
             
-            **📧 Votre adresse e-mail est essentielle pour recevoir le cahier de charge final.**
+            **📧 Votre adresse e-mail est requise pour recevoir le document final.**
             """,
             unsafe_allow_html=False,
         )
@@ -556,7 +555,7 @@ if st.session_state.current_step == None:
                 value=result["text"],
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
-                max_chars= 500
+                max_chars= 1000
                 
             )
         else:
@@ -564,7 +563,7 @@ if st.session_state.current_step == None:
                 "Posez votre question ici 👇",
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
-                max_chars= 500
+                max_chars= 1000
       
             )
 
