@@ -11,5 +11,4 @@ class HistoricView:
 
     def build_Historic_Container(self):
         st.container(border=self.border , height= self.height)
-        st.write("test")
 
