@@ -570,4 +570,4 @@ if st.session_state.current_step == None:
         # Afficher les boutons interactifs
         display_interactive_buttons(st, clear_text, clear_text_with_default)
 setup_sidebar()
-display_summary_history()
+#display_summary_history()
