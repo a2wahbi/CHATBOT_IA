@@ -4,6 +4,45 @@ from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, Huma
 from langchain.schema import SystemMessage
 from prompts import initial_questions, section_prompts , summary_sections , system_prompt , system_summary_prompt
 
+
+
+
+def handle_token_limit_error_in_section(historique_container):
+    """
+    Gère les cas où la limite de tokens est atteinte dans une section.
+    Affiche un message clair et ajoute un bouton pour aller directement à la dernière étape.
+    """
+    # Affiche un message d'erreur expliquant la situation
+    historique_container.error(
+        """
+        ❌ **Limite atteinte : Données trop volumineuses**  
+        L'IA a atteint sa limite de traitement pour cette section.  
+        👉 **Veuillez continuer avec la section suivante** pour éviter de perdre des données.
+        
+        ⚠️ Note : Certaines parties de cette section pourraient ne pas être incluses dans le résumé final.
+        """,
+        icon="⚠️",
+    )
+
+    # Bouton pour aller directement à la dernière étape
+    if historique_container.button(
+        "📄 Aller à la dernière étape : Génération du cahier des charges", type="primary"
+    ):
+        # Mettre à jour la section actuelle
+        st.session_state.current_section = "Génération de Cahier des Charges"
+
+        # Ajouter un message de confirmation à l'historique
+        st.session_state.chat_history.append({
+            'human': None,
+            'AI': """
+            Vous avez choisi de passer directement à la dernière étape.  
+            Vous pouvez maintenant générer le cahier des charges final.
+            """
+        })
+
+
+         # Debug : vérifier l'historique
+    st.write("État de l'historique après l'ajout :", st.session_state.chat_history)
 ##############################################################################
 #                       FONCTIONS DE GÉNÉRATION DE PROMPTS                   # 
 ##############################################################################

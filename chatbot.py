@@ -10,7 +10,7 @@ import json
 import whisper
 import tempfile
 from buttons import display_interactive_buttons
-from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
+from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section , handle_token_limit_error_in_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
 from init import app_init , init_input_user_container
@@ -24,6 +24,7 @@ result = {
     "segments": [],  # Liste pour les détails au niveau des segments
     "language": None  # Langue détectée, initialement définie comme None
 }
+
 
 
 ##############################################################################
@@ -154,8 +155,17 @@ def clear_text():
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
         except Exception as e:
+                
+            # Gestion de l'erreur liée à la limite de tokens
+            if "rate_limit_exceeded" in str(e) or "Request too large" in str(e):
+                handle_token_limit_error_in_section(historique_container)
+                st.session_state.chat_history.append({
+        'human': None,
+        'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
+    })
+
+            else:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
-                            #Clean the user input  
         st.session_state["text"] = ""  
 
 def clear_text_with_default(default_input="Je ne sais pas"):
@@ -496,12 +506,14 @@ if st.session_state.current_step == None:
                 value=result["text"],
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
+                max_chars=2000
             )
         else:
             user_question = st.text_area(
                 "Posez votre question ici 👇",
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
+                max_chars=2000
             )
 
         # Afficher les boutons interactifs
