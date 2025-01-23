@@ -39,10 +39,6 @@ def handle_token_limit_error_in_section(historique_container):
             Vous pouvez maintenant générer le cahier des charges final.
             """
         })
-
-
-         # Debug : vérifier l'historique
-    st.write("État de l'historique après l'ajout :", st.session_state.chat_history)
 ##############################################################################
 #                       FONCTIONS DE GÉNÉRATION DE PROMPTS                   # 
 ##############################################################################

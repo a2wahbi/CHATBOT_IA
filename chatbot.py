@@ -158,11 +158,29 @@ def clear_text():
                 
             # Gestion de l'erreur liée à la limite de tokens
             if "rate_limit_exceeded" in str(e) or "Request too large" in str(e):
-                handle_token_limit_error_in_section(historique_container)
+                # Passer directement à la dernière section
+                st.session_state.current_section = "Génération de Cahier des Charges"
+                
+                        # Ajouter le titre de la section à l'historique
                 st.session_state.chat_history.append({
-        'human': None,
-        'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
-    })
+                    'human': None,
+                    'AI': f"### {st.session_state.current_section}"
+                })
+                # Ajouter un message d'erreur à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': """
+                    ❌ **Vous avez atteint la limite de traitement.**  
+                    Vous êtes redirigé vers la dernière étape pour générer le cahier des charges basé sur les sections complétées.
+                    """
+                })
+
+                # Ajouter le message pour le bouton de téléchargement
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
+                })
+
 
             else:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
@@ -193,7 +211,34 @@ def clear_text_with_default(default_input="Je ne sais pas"):
         if len(st.session_state.chat_history) % memory_length == 0:
             append_history_to_file(st.session_state.chat_history[-memory_length:])
     except Exception as e:
-        st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+                    # Gestion de l'erreur liée à la limite de tokens
+            if "rate_limit_exceeded" in str(e) or "Request too large" in str(e):
+                # Passer directement à la dernière section
+                st.session_state.current_section = "Génération de Cahier des Charges"
+                
+                        # Ajouter le titre de la section à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': f"### {st.session_state.current_section}"
+                })
+                # Ajouter un message d'erreur à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': """
+                    ❌ **Vous avez atteint la limite de traitement.**  
+                    Vous êtes redirigé vers la dernière étape pour générer le cahier des charges basé sur les sections complétées.
+                    """
+                })
+
+                # Ajouter le message pour le bouton de téléchargement
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
+                })
+
+
+            else:
+                st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
 
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
@@ -270,6 +315,10 @@ def display_historique(historique_container):
                 """, 
                 unsafe_allow_html=True
             )
+        elif message['human'] is None and message['AI'].startswith("❌ **Vous avez atteint la limite de traitement.**"):
+            # Rendre le message d'erreur avec un style spécifique
+            historique_container.error(message['AI'])
+
         elif message['human'] is None and message['AI'].startswith("###"):
             # Affichage des titres de section avec un style personnalisé
             historique_container.markdown(
@@ -321,6 +370,7 @@ def display_historique(historique_container):
             download_content = generate_summary_document()
             historique_container.download_button(
                 label="📥 Télécharger le cahier de charge en format .txt",
+                type = "primary",
                 data=download_content,
                 file_name="resume_projet_iot.txt",
                 mime="text/plain"
@@ -506,14 +556,16 @@ if st.session_state.current_step == None:
                 value=result["text"],
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
-                max_chars=2000
+                max_chars= 500
+                
             )
         else:
             user_question = st.text_area(
                 "Posez votre question ici 👇",
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
-                max_chars=2000
+                max_chars= 500
+      
             )
 
         # Afficher les boutons interactifs
