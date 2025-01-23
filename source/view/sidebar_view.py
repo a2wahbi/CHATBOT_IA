@@ -15,6 +15,3 @@ class SideBarView:
         st.sidebar.markdown("## Progression")
 
 
-sidebar_display = SideBarView()
-sidebar_display.display_Logo(True)
-sidebar_display.display_Section_Progress()

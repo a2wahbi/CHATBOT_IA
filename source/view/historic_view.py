@@ -13,5 +13,3 @@ class HistoricView:
         st.container(border=self.border , height= self.height)
         st.write("test")
 
-historic_container = HistoricView(True , 470)
-historic_container.build_Historic_Container()
