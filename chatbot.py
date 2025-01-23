@@ -10,7 +10,7 @@ import json
 import whisper
 import tempfile
 from buttons import display_interactive_buttons
-from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section
+from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section , handle_token_limit_error_in_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
 from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
 from init import app_init , init_input_user_container
@@ -24,6 +24,7 @@ result = {
     "segments": [],  # Liste pour les détails au niveau des segments
     "language": None  # Langue détectée, initialement définie comme None
 }
+
 
 
 ##############################################################################
@@ -70,8 +71,9 @@ def start_new_discussion_callback():
             user_details.get("first_name"),
             user_details.get("last_name"),
         )
-        st.session_state.current_step = 4
+        st.session_state.current_step = None  # Évitez les affichages inutiles d'étapes
 
+        next_section()
 
 ##############################################################################
 #                               speech to text                                #
@@ -153,8 +155,35 @@ def clear_text():
                 if len(st.session_state.chat_history) % memory_length == 0:
                     append_history_to_file(st.session_state.chat_history[-memory_length:])
         except Exception as e:
+                
+            # Gestion de l'erreur liée à la limite de tokens
+            if "rate_limit_exceeded" in str(e) or "Request too large" in str(e):
+                # Passer directement à la dernière section
+                st.session_state.current_section = "Génération de Cahier des Charges"
+                
+                        # Ajouter le titre de la section à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': f"### {st.session_state.current_section}"
+                })
+                # Ajouter un message d'erreur à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': """
+                    ❌ **Vous avez atteint la limite de traitement.**  
+                    Vous êtes redirigé vers la dernière étape pour générer le cahier des charges basé sur les sections complétées.
+                    """
+                })
+
+                # Ajouter le message pour le bouton de téléchargement
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
+                })
+
+
+            else:
                 st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
-                            #Clean the user input  
         st.session_state["text"] = ""  
 
 def clear_text_with_default(default_input="Je ne sais pas"):
@@ -182,7 +211,34 @@ def clear_text_with_default(default_input="Je ne sais pas"):
         if len(st.session_state.chat_history) % memory_length == 0:
             append_history_to_file(st.session_state.chat_history[-memory_length:])
     except Exception as e:
-        st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+                    # Gestion de l'erreur liée à la limite de tokens
+            if "rate_limit_exceeded" in str(e) or "Request too large" in str(e):
+                # Passer directement à la dernière section
+                st.session_state.current_section = "Génération de Cahier des Charges"
+                
+                        # Ajouter le titre de la section à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': f"### {st.session_state.current_section}"
+                })
+                # Ajouter un message d'erreur à l'historique
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': """
+                    ❌ **Vous avez atteint la limite de traitement.**  
+                    Vous êtes redirigé vers la dernière étape pour générer le cahier des charges basé sur les sections complétées.
+                    """
+                })
+
+                # Ajouter le message pour le bouton de téléchargement
+                st.session_state.chat_history.append({
+                    'human': None,
+                    'AI': '📥 [Cliquez ici pour télécharger le cahier de charge en format .txt]'
+                })
+
+
+            else:
+                st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
 
 #Enregistrer les données dans un fichier JSON 
 HISTORY_FILE = "chat_history.json"
@@ -259,6 +315,10 @@ def display_historique(historique_container):
                 """, 
                 unsafe_allow_html=True
             )
+        elif message['human'] is None and message['AI'].startswith("❌ **Vous avez atteint la limite de traitement.**"):
+            # Rendre le message d'erreur avec un style spécifique
+            historique_container.error(message['AI'])
+
         elif message['human'] is None and message['AI'].startswith("###"):
             # Affichage des titres de section avec un style personnalisé
             historique_container.markdown(
@@ -310,6 +370,7 @@ def display_historique(historique_container):
             download_content = generate_summary_document()
             historique_container.download_button(
                 label="📥 Télécharger le cahier de charge en format .txt",
+                type = "primary",
                 data=download_content,
                 file_name="resume_projet_iot.txt",
                 mime="text/plain"
@@ -363,20 +424,36 @@ def display_intro_message(historique_container):
         # Étape 2 : Formulaire pour les informations utilisateur
         historique_container.markdown(
             """
-            
             ### 📝 Informations nécessaires
-            Avant de commencer, merci de renseigner vos informations.
+            
+            Pour personnaliser votre expérience et vous permettre de télécharger le cahier des charges complet, nous avons besoin de quelques informations.
+            
+            **📧 Votre adresse e-mail est requise pour recevoir le document final.**
             """,
             unsafe_allow_html=False,
         )
-        historique_container.text_input("Prénom", placeholder="Votre prénom", key="first_name")
-        historique_container.text_input("Nom", placeholder="Votre nom", key="last_name")
-        historique_container.text_input("Adresse e-mail", placeholder="exemple@domaine.com", key="email")
-        historique_container.button(
-            "Commencer",
-            on_click=submit_user_info_callback,
-            type = "primary"
+        
+        # Ajout des champs avec une indication claire des champs obligatoires
+        first_name = historique_container.text_input(
+            "Prénom *", 
+            placeholder="Votre prénom", 
+            key="first_name"
         )
+        last_name = historique_container.text_input(
+            "Nom *", 
+            placeholder="Votre nom", 
+            key="last_name"
+        )
+        email = historique_container.text_input(
+            "Adresse e-mail *", 
+            placeholder="exemple@domaine.com", 
+            key="email"
+        )
+        
+        # Affichage du bouton "Commencer" avec un rappel
+        historique_container.button("Commencer", on_click=submit_user_info_callback, type="primary")
+
+
 
     elif st.session_state.current_step == 3:
         # Étape 3 : Confirmation
@@ -466,7 +543,7 @@ else:
 # Widget audio
 #audio_input_widget()
 # Affichage du conteneur uniquement à l'étape 4
-if st.session_state.current_step == 4:
+if st.session_state.current_step == None:
     # Initialiser le conteneur
     input_question_container = init_input_user_container()
 
@@ -478,12 +555,16 @@ if st.session_state.current_step == 4:
                 value=result["text"],
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
+                max_chars= 1000
+                
             )
         else:
             user_question = st.text_area(
                 "Posez votre question ici 👇",
                 placeholder="Comment puis-je vous aider ?",
                 key="text",
+                max_chars= 1000
+      
             )
 
         # Afficher les boutons interactifs
