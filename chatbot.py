@@ -12,9 +12,9 @@ import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section , handle_token_limit_error_in_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
-from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user  
+from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user 
 from init import app_init , init_input_user_container
-import html  # Importer le module pour échapper les caractères spéciaux
+import html  
 
 st.set_page_config(layout="centered")
 
@@ -366,13 +366,18 @@ def display_historique(historique_container):
 
 
         elif message['human'] is None and '📥 [Cliquez ici pour télécharger' in message['AI']:
-            # Bouton de téléchargement
-            download_content = generate_summary_document()
+        # Générer le cahier des charges
+            cahier_content = generate_summary_document()
+
+            # Sauvegarder dans la même feuille que la discussion
+            save_to_google_sheets(None, None, None, cahier_content)
+
+            #st.success("Le cahier des charges a été sauvegardé dans la même feuille que la discussion !")
             historique_container.download_button(
-                label="📥 Télécharger le cahier de charge en format .txt",
+                label="📥 Télécharger le cahier des charges",
                 type = "primary",
-                data=download_content,
-                file_name="resume_projet_iot.txt",
+                data=cahier_content,
+                file_name="cahier_des_charges.txt",
                 mime="text/plain"
             )
         else:

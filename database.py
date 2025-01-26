@@ -6,6 +6,41 @@ from datetime import datetime
 import streamlit as st
 import gspread
 
+def save_to_google_sheets(user_message, assistant_response, section_name, cahier_content=None):
+    """
+    Enregistre une conversation ou un cahier des charges dans Google Sheets.
+    
+    Args:
+        user_message (str): Message de l'utilisateur.
+        assistant_response (str): Réponse générée par l'assistant.
+        section_name (str): Section actuelle de la discussion.
+        cahier_content (str): Contenu du cahier des charges (facultatif).
+    """
+    try:
+        # Obtenir la feuille actuelle depuis la session
+        current_sheet_name = st.session_state.get("current_sheet")
+        if not current_sheet_name:
+            #st.error("Aucune feuille active n'est définie.")
+            return
+        
+        # Obtenir le classeur et la feuille actuelle
+        spreadsheet = connect_to_google_sheets()
+        sheet = spreadsheet.worksheet(current_sheet_name)
+
+        if cahier_content:
+            # Ajouter le contenu du cahier des charges avec une ligne vide pour séparer
+            sheet.append_row([])
+            sheet.append_row(["Cahier des Charges :"])
+            sheet.append_row([cahier_content])
+        else:
+            # Ajouter une nouvelle ligne pour la discussion
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            data_to_write = [None, None, None, timestamp, user_message, assistant_response, section_name]
+            sheet.append_row(data_to_write)
+
+    except Exception as e:
+        st.error(f"Erreur lors de l'enregistrement des données : {e}")
+
 def connect_to_google_sheets():
     """Connecte à Google Sheets et retourne le classeur complet."""
     try:
@@ -32,33 +67,6 @@ def connect_to_google_sheets():
         raise RuntimeError(f"Erreur de connexion à Google Sheets : {e}")
     
 
-def save_to_google_sheets(user_message, assistant_response, section_name):
-    """
-    Enregistre une conversation dans Google Sheets avec la date/heure dans la feuille actuelle.
-    
-    Args:
-        user_message (str): Message de l'utilisateur.
-        assistant_response (str): Réponse générée par l'assistant.
-        section_name (str): Section actuelle de la discussion.
-    """
-    try:
-        # Obtenir la feuille actuelle depuis la session
-        current_sheet_name = st.session_state.get("current_sheet")
-        if not current_sheet_name:
-            st.error("Aucune feuille active n'est définie.")
-            return
-        
-        # Obtenir le classeur et la feuille actuelle
-        spreadsheet = connect_to_google_sheets()
-        sheet = spreadsheet.worksheet(current_sheet_name)
-
-        # Ajouter une nouvelle ligne
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data_to_write = [None, None, None, timestamp, user_message, assistant_response, section_name]
-        sheet.append_row(data_to_write)
-
-    except Exception as e:
-        st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
 def create_new_sheet_from_user(email, first_name, last_name ):
     """
