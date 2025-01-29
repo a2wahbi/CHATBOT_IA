@@ -4,14 +4,17 @@ from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, Huma
 from langchain.schema import SystemMessage
 from prompts import initial_questions, section_prompts , summary_sections , system_prompt , system_summary_prompt
 
-
-
+def get_user_email():
+    """Retrieve the user email from session or assign 'guest'."""
+    return st.session_state.get("user_details", {}).get("email", "guest")
 
 def handle_token_limit_error_in_section(historique_container):
     """
     Gère les cas où la limite de tokens est atteinte dans une section.
     Affiche un message clair et ajoute un bouton pour aller directement à la dernière étape.
     """
+    user_email = get_user_email()
+    chat_key = f'chat_history_{user_email}'
     # Affiche un message d'erreur expliquant la situation
     historique_container.error(
         """
@@ -32,7 +35,7 @@ def handle_token_limit_error_in_section(historique_container):
         st.session_state.current_section = "Génération de Cahier des Charges"
 
         # Ajouter un message de confirmation à l'historique
-        st.session_state.chat_history.append({
+        st.session_state[chat_key].append({
             'human': None,
             'AI': """
             Vous avez choisi de passer directement à la dernière étape.  
@@ -125,6 +128,9 @@ def generate_summary_document():
 
 def next_section():
     """Passe à la section suivante ou propose de télécharger le résumé à la fin."""
+
+    user_email = get_user_email()
+    chat_key = f'chat_history_{user_email}'
     sections = list(section_prompts.keys())
     current_index = sections.index(st.session_state.current_section)
 
@@ -136,7 +142,7 @@ def next_section():
         st.session_state.current_section = sections[current_index + 1]
 
         # Ajouter le titre de la section à l'historique
-        st.session_state.chat_history.append({
+        st.session_state[chat_key].append({
             'human': None,
             'AI': f"### {st.session_state.current_section}"
         })
@@ -159,7 +165,7 @@ def next_section():
         # Ajouter la question initiale de la section
         initial_question = initial_questions.get(section_name, "")
         if initial_question:
-            st.session_state.chat_history.append({"human": "", "AI": initial_question})
+            st.session_state[chat_key].append({"human": "", "AI": initial_question})
             # Ajouter le message de fin et le bouton de téléchargement dans l'historique
         if st.session_state.current_section == "Génération de Cahier des Charges":
 
@@ -167,16 +173,16 @@ def next_section():
             Félicitations 🎉 ! Vous avez terminé toutes les sections.  
             Vous pouvez maintenant télécharger le résumé complet en appuyant sur le bouton ci-dessous.
             """
-            st.session_state.chat_history.append({
+            st.session_state[chat_key].append({
                 'human': None,
                 'AI': final_message
             })
-            st.session_state.chat_history.append({
+            st.session_state[chat_key].append({
                 'human': None,
                 'AI': '📥 [Cliquez ici pour télécharger le résumé](download_link)'
             })  
     else:
-         st.session_state.chat_history.append({
+         st.session_state[chat_key].append({
             'human': None,
             'AI': """
             Merci pour votre confiance et d'avoir choisi TEKIN. Vous êtes déjà à la fin du processus.
@@ -194,6 +200,9 @@ def generate_summary():
         # Ignorer la section Accueil
         if st.session_state.current_section == "Accueil":
             return
+        
+        user_email = get_user_email()
+        chat_key = f'chat_history_{user_email}'
 
         # Vérifier si 'groq_chat' est bien initialisé
         if 'groq_chat' not in st.session_state:
@@ -201,14 +210,14 @@ def generate_summary():
             return
 
         # Vérifier que l'historique des conversations est non vide
-        if not st.session_state.chat_history:
+        if not st.session_state[chat_key]:
             st.warning("Aucune conversation disponible pour générer un résumé.")
             return
 
         # Transformer l'historique des conversations en format compatible LangChain
         formatted_history = [
             {'role': 'user', 'content': msg['human']} if idx % 2 == 0 else {'role': 'assistant', 'content': msg['AI']}
-            for idx, msg in enumerate(st.session_state.chat_history)
+            for idx, msg in enumerate(st.session_state[chat_key])
         ]
 
         # Ajouter une consigne explicite pour forcer la structure
