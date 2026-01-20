@@ -5,6 +5,7 @@ from langchain_groq import ChatGroq
 from langchain.chains import ConversationChain
 import streamlit as st
 import whisper
+import os
 from streamlit_extras.bottom_container import bottom
 # Fonction pour initialiser tous les conteneurs
 def init_container():
@@ -46,7 +47,7 @@ def init_configure_memory_buffer(memory_length):
 @st.cache_resource
 def init_groq_chat(model_choice, max_tokens):
     return ChatGroq(
-        groq_api_key="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",
+        groq_api_key=os.getenv("GROQ_API_KEY"),
         model_name=model_choice,
         max_tokens=max_tokens
     )
