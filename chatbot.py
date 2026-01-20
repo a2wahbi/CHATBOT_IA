@@ -579,7 +579,7 @@ if 'full_prompt' not in st.session_state:
     )
 
 if "current_sheet" not in st.session_state:
-    st.session_state.current_sheet = "Discussion 1"  # Feuille par défaut
+    st.session_state.current_sheet = None
 
 if 'history_summary' not in st.session_state:
     st.session_state.history_summary = [] 
