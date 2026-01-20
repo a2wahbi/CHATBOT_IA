@@ -7,7 +7,6 @@ from langchain.chains import ConversationChain
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
 from langchain.schema import SystemMessage
 import json
-import whisper
 import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section , handle_token_limit_error_in_section
