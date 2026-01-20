@@ -1,12 +1,15 @@
 from layout import get_historique_container, get_title_container, get_input_question_container
 from dotenv import load_dotenv
+import os
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_groq import ChatGroq
 from langchain.chains import ConversationChain
 import streamlit as st
-import whisper
-import os
 from streamlit_extras.bottom_container import bottom
+
+# Charger les variables d'environnement
+load_dotenv()
+
 # Fonction pour initialiser tous les conteneurs
 def init_container():
     title_container = get_title_container()
@@ -60,9 +63,12 @@ def init_conversation_chain(groq_chat, memory):
     )
 
 # Charger le modèle Whisper avec mise en cache
+'''
 @st.cache_resource
 def load_model_whisper():
     return whisper.load_model("small" , device = "cpu") # Modèles possibles : tiny, base, small, medium, large
+'''
+
 
 # Fonction principale d'initialisation de l'application
 def app_init():
