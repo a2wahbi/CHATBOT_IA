@@ -11,7 +11,7 @@ import tempfile
 from buttons import display_interactive_buttons
 from cahierDeCharge import section_prompts, system_prompt, generate_full_prompt , next_section , handle_token_limit_error_in_section
 from cahierDeCharge import get_updated_prompt_template , display_summary_history , init , generate_summary_document
-from database import save_to_google_sheets , connect_to_google_sheets , create_new_sheet_from_user 
+from database import save_to_google_sheets, create_new_sheet_from_user
 from init import app_init , init_input_user_container
 import html  
 
